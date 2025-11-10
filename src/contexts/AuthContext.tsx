@@ -47,7 +47,8 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [userProfile, setUserProfile] = useState<Donor | NGO | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
   const [connections, setConnections] = useState<Connection[]>([]);
 
   const loadConnections = (userId: string) => {
@@ -95,29 +96,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const checkAuth = async () => {
-      if (apiService.isAuthenticated()) {
-        try {
-          const response = await apiService.verifyToken();
-          setCurrentUser(response.user);
-          setUserProfile(response.user as Donor | NGO);
-          if (response.user?.user_type === 'donor') {
-            loadConnections(response.user.id);
-          } else {
+      setLoading(true);
+      try {
+        if (apiService.isAuthenticated()) {
+          try {
+            const response = await apiService.verifyToken();
+            setCurrentUser(response.user);
+            setUserProfile(response.user as Donor | NGO);
+            if (response.user?.user_type === 'donor') {
+              loadConnections(response.user.id);
+            } else {
+              setConnections([]);
+            }
+          } catch (error) {
+            console.error('Token verification failed:', error);
+            apiService.logout();
+            setCurrentUser(null);
+            setUserProfile(null);
             setConnections([]);
           }
-        } catch (error) {
-          console.error('Token verification failed:', error);
-          apiService.logout();
+        } else {
           setCurrentUser(null);
           setUserProfile(null);
           setConnections([]);
         }
-      } else {
-        setCurrentUser(null);
-        setUserProfile(null);
-        setConnections([]);
+      } finally {
+        setLoading(false);
+        setInitializing(false);
       }
-      setLoading(false);
     };
 
     checkAuth();
@@ -197,9 +203,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateProfile,
   };
 
+  if (initializing) {
+    return (
+      <AuthContext.Provider value={value}>
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-gray-600">Loading session...</p>
+        </div>
+      </AuthContext.Provider>
+    );
+  }
+
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
