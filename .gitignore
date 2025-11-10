@@ -93,7 +93,7 @@ dist
 
 # Gatsby files
 .cache/
-public
+# Keep CRA `public/` folder in source control
 
 # Storybook build outputs
 .out
