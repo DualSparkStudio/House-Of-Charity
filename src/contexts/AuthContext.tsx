@@ -98,30 +98,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const checkAuth = async () => {
       setLoading(true);
       try {
-        if (apiService.isAuthenticated()) {
-          try {
-            const response = await apiService.verifyToken();
-            setCurrentUser(response.user);
-            setUserProfile(response.user as Donor | NGO);
-            if (response.user?.user_type === 'donor') {
-              loadConnections(response.user.id);
-            } else {
-              setConnections([]);
-            }
-          } catch (error) {
-            console.error('Token verification failed:', error);
-            apiService.logout();
-            setCurrentUser(null);
-            setUserProfile(null);
+      if (apiService.isAuthenticated()) {
+        try {
+          const response = await apiService.verifyToken();
+          setCurrentUser(response.user);
+          setUserProfile(response.user as Donor | NGO);
+          if (response.user?.user_type === 'donor') {
+            loadConnections(response.user.id);
+          } else {
             setConnections([]);
           }
-        } else {
+        } catch (error) {
+          console.error('Token verification failed:', error);
+          apiService.logout();
           setCurrentUser(null);
           setUserProfile(null);
           setConnections([]);
         }
+      } else {
+        setCurrentUser(null);
+        setUserProfile(null);
+        setConnections([]);
+      }
       } finally {
-        setLoading(false);
+      setLoading(false);
         setInitializing(false);
       }
     };

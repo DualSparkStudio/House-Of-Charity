@@ -1,42 +1,21 @@
 {
-  "functions": {
-    "api/index.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
+  "version": 2,
   "builds": [
     {
       "src": "package.json",
       "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "config": { "distDir": "build" }
     },
     {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "src": "api/index.js",
+      "use": "@vercel/node",
+      "config": { "includeFiles": ["backend/**"] }
     }
-  ]
-}
-{
-  "version": 2,
-  "builds": [
-    { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "build" } },
-    { "src": "api/index.js", "use": "@vercel/node", "config": { "includeFiles": ["backend/**"] } }
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/index.js" },
     { "src": "/(.*\\.[^/]+)$", "dest": "/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
-  ],
-  "env": {
-    "USE_MOCK_DB": "true"
-  }
+  ]
 }
 
