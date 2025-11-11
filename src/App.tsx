@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
@@ -14,6 +15,27 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
 function App() {
+  useEffect(() => {
+    const checkApiHealth = async () => {
+      const baseApiUrl =
+        process.env.REACT_APP_API_URL ||
+        (process.env.NODE_ENV === 'development' ? 'http://localhost:5000/api' : '/api');
+
+      try {
+        const response = await fetch(`${baseApiUrl.replace(/\/$/, '')}/health`);
+        if (!response.ok) {
+          throw new Error(`Status ${response.status}`);
+        }
+        const data = await response.json();
+        console.log(`✅ API connected (mode: ${data.mode || 'unknown'})`);
+      } catch (error) {
+        console.error('❌ API health check failed:', error);
+      }
+    };
+
+    checkApiHealth();
+  }, []);
+
   return (
     <AuthProvider>
       <Router>
