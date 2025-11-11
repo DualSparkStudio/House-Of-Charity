@@ -8,6 +8,20 @@ if (!supabase) {
   );
 }
 
+(async () => {
+  try {
+    const { data, error } = await supabase
+      .from("donors")
+      .select("id")
+      .limit(1);
+
+    if (error) throw error;
+    console.log("✅ Supabase connection verified.");
+  } catch (err) {
+    console.error("❌ Supabase connection failed:", err.message || err);
+  }
+})();
+
 const donorColumns = [
   "id",
   "name",
