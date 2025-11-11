@@ -4,16 +4,23 @@ const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../config/database');
 const { useMockDb, findUserByEmail, findUserById, createUser } = require('../services/mockData');
+const { isMockDb, useSupabase } = require('../utils/dbMode');
+
+let supabaseAdapter = null;
+if (useSupabase()) {
+  // Lazy-load to avoid requiring when Supabase mode is enabled
+  supabaseAdapter = require('../services/supabaseAdapter');
+}
 const router = express.Router();
 
-const isMockDb = () => useMockDb();
+const isMockDbMode = () => isMockDb();
 
 // Register endpoint
 router.post('/register', async (req, res) => {
   try {
     const { email, password, userData } = req.body;
 
-    if (isMockDb()) {
+    if (isMockDbMode()) {
       const existingUser = findUserByEmail(email);
       if (existingUser) {
         return res.status(400).json({ error: 'User with this email already exists' });
@@ -44,6 +51,54 @@ router.post('/register', async (req, res) => {
         token,
         user: safeUser,
       });
+    }
+
+    if (useSupabase()) {
+      try {
+        const existing = await supabaseAdapter.findUserByEmail(email);
+        if (existing) {
+          return res.status(400).json({ error: 'User with this email already exists' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const basePayload = {
+          email,
+          password_hash: hashedPassword,
+          name: userData.name || null,
+          phone_number: userData.phone || null,
+          address: userData.address || null,
+          city: userData.city || null,
+          state: userData.state || null,
+          country: userData.country || 'India',
+          pincode: userData.pincode || null,
+          description: userData.description || null,
+          website: userData.website || null,
+          logo_url: userData.logo_url || null,
+          verified: !!userData.verified,
+        };
+
+        if (userData.user_type === 'ngo') {
+          basePayload.works_done = userData.works_done || null;
+          basePayload.awards_received = userData.awards_received || null;
+        }
+
+        const result = await supabaseAdapter.createUser(userData.user_type, basePayload);
+        const token = jwt.sign(
+          { id: result.mapped.id, email, user_type: userData.user_type },
+          process.env.JWT_SECRET,
+          { expiresIn: '24h' }
+        );
+
+        return res.status(201).json({
+          message: 'User registered successfully',
+          token,
+          user: result.mapped,
+        });
+      } catch (error) {
+        console.error('Supabase registration error:', error);
+        const message = error?.message || 'Failed to register user';
+        return res.status(500).json({ error: message });
+      }
     }
 
     // Check if user already exists (MySQL)
@@ -106,7 +161,7 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (isMockDb()) {
+    if (isMockDbMode()) {
       const user = findUserByEmail(email);
 
       if (!user) {
@@ -128,6 +183,37 @@ router.post('/login', async (req, res) => {
         token,
         user: safeUser,
       });
+    }
+
+    if (useSupabase()) {
+      try {
+        const result = await supabaseAdapter.findUserByEmail(email);
+
+        if (!result) {
+          return res.status(400).json({ error: 'Invalid email or password' });
+        }
+
+        const isValidPassword = await bcrypt.compare(password, result.record.password_hash);
+        if (!isValidPassword) {
+          return res.status(400).json({ error: 'Invalid email or password' });
+        }
+
+        const token = jwt.sign(
+          { id: result.mapped.id, email: result.mapped.email, user_type: result.mapped.user_type },
+          process.env.JWT_SECRET,
+          { expiresIn: '24h' }
+        );
+
+        return res.json({
+          message: 'Login successful',
+          token,
+          user: result.mapped,
+        });
+      } catch (error) {
+        console.error('Supabase login error:', error);
+        const message = error?.message || 'Internal server error during login';
+        return res.status(500).json({ error: message });
+      }
     }
 
     // Find user by email
@@ -179,7 +265,7 @@ router.get('/verify', async (req, res) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (isMockDb()) {
+    if (isMockDbMode()) {
       const user = findUserById(decoded.id);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
@@ -187,6 +273,20 @@ router.get('/verify', async (req, res) => {
 
       const { password: _password, ...safeUser } = user;
       return res.json({ user: safeUser });
+    }
+
+    if (useSupabase()) {
+      try {
+        const result = await supabaseAdapter.findUserById(decoded.id);
+        if (!result) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        return res.json({ user: result.mapped });
+      } catch (error) {
+        console.error('Supabase token verification error:', error);
+        return res.status(500).json({ error: 'Failed to verify token' });
+      }
     }
 
     // Get user data from database

@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../config/database');
+const { v4: uuidv4 } = require('uuid');
 const { authenticateToken } = require('../middleware/auth');
 const { 
   useMockDb, 
@@ -8,9 +9,15 @@ const {
   mockDonations, 
   updateDonation: updateMockDonation 
 } = require('../services/mockData');
+const { isMockDb, useSupabase } = require('../utils/dbMode');
+
+let supabaseAdapter = null;
+if (useSupabase()) {
+  supabaseAdapter = require('../services/supabaseAdapter');
+}
 const router = express.Router();
 
-const isMockDb = () => useMockDb();
+const isMockDbMode = () => isMockDb();
 const enrichDonation = (donation) => {
   const donor = donation ? findUserById(donation.donor_id) : null;
   const ngo = donation ? findUserById(donation.ngo_id) : null;
@@ -21,6 +28,28 @@ const enrichDonation = (donation) => {
     donor_email: donor?.email || null,
     ngo_name: ngo?.name || null,
     display_name: donation?.anonymous ? 'Anonymous' : donor?.name || null,
+  };
+};
+
+const mapSupabaseDonation = (donation) => {
+  if (!donation) return null;
+  const { donor, ngo, ...rest } = donation;
+  const amount =
+    rest.amount !== null && rest.amount !== undefined
+      ? Number(rest.amount)
+      : rest.amount;
+  const quantity =
+    rest.quantity !== null && rest.quantity !== undefined
+      ? Number(rest.quantity)
+      : rest.quantity;
+  return {
+    ...rest,
+    amount,
+    quantity,
+    donor_name: donor?.name || null,
+    donor_email: donor?.email || null,
+    ngo_name: ngo?.name || null,
+    display_name: rest.anonymous ? 'Anonymous' : donor?.name || null,
   };
 };
 
@@ -40,6 +69,8 @@ router.post('/', authenticateToken, async (req, res) => {
       unit,
       delivery_date,
       essential_type,
+      details,
+      service_details,
     } = req.body;
 
     const donor_id = req.user.id;
@@ -63,7 +94,7 @@ router.post('/', authenticateToken, async (req, res) => {
       }
     }
 
-    if (isMockDb()) {
+    if (isMockDbMode()) {
       const ngo = findUserById(ngo_id);
       if (!ngo || ngo.user_type !== 'ngo') {
         return res.status(404).json({ error: 'NGO not found' });
@@ -94,6 +125,53 @@ router.post('/', authenticateToken, async (req, res) => {
         message: 'Donation created successfully',
         donation: enrichDonation(donation),
       });
+    }
+
+    if (useSupabase()) {
+      try {
+        if (req.user.user_type && req.user.user_type !== 'donor') {
+          return res.status(403).json({ error: 'Only donors can create donations' });
+        }
+
+        const ngo = await supabaseAdapter.findUserById(ngo_id);
+        if (!ngo || ngo.type !== 'ngo') {
+          return res.status(404).json({ error: 'NGO not found' });
+        }
+
+        const donor = await supabaseAdapter.findUserById(donor_id);
+        if (!donor || donor.type !== 'donor') {
+          return res.status(404).json({ error: 'Donor not found' });
+        }
+
+        const payload = {
+          donor_id,
+          ngo_id,
+          donation_type: normalizedType,
+          amount: normalizedType === 'money' ? Number(amount) : 0,
+          currency: currency || 'INR',
+          quantity: normalizedType === 'money' ? null : Number(quantity),
+          unit: normalizedType === 'money' ? null : unit,
+          essential_type: normalizedType === 'essentials' ? essential_type || null : null,
+          service_details: normalizedType === 'services' ? (message || details || null) : service_details || null,
+          details: details || null,
+          delivery_date: delivery_date || null,
+          payment_method: normalizedType === 'money' ? payment_method || null : null,
+          transaction_id: normalizedType === 'money' ? transaction_id || null : null,
+          anonymous: !!anonymous,
+          message: message || null,
+        };
+
+        const donation = await supabaseAdapter.createDonation(payload);
+
+        return res.status(201).json({
+          message: 'Donation created successfully',
+          donation: mapSupabaseDonation(donation),
+        });
+      } catch (error) {
+        console.error('Error creating Supabase donation:', error);
+        const message = error?.message || 'Internal server error';
+        return res.status(500).json({ error: message });
+      }
     }
 
     // Validate required fields
@@ -174,7 +252,7 @@ router.get('/donor/:donorId', authenticateToken, async (req, res) => {
   try {
     const { donorId } = req.params;
 
-    if (isMockDb()) {
+    if (isMockDbMode()) {
       if (req.user.id !== donorId) {
         return res.status(403).json({ error: 'Access denied' });
       }
@@ -185,6 +263,21 @@ router.get('/donor/:donorId', authenticateToken, async (req, res) => {
         .map(enrichDonation);
 
       return res.json({ donations });
+    }
+
+    if (useSupabase()) {
+      if (req.user.id !== donorId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      try {
+        const donations = await supabaseAdapter.listDonations({ donor_id: donorId });
+        return res.json({ donations: donations.map(mapSupabaseDonation) });
+      } catch (error) {
+        console.error('Error fetching Supabase donor donations:', error);
+        const message = error?.message || 'Internal server error';
+        return res.status(500).json({ error: message });
+      }
     }
 
     // Check if user can access these donations
@@ -216,7 +309,7 @@ router.get('/ngo/:ngoId', authenticateToken, async (req, res) => {
   try {
     const { ngoId } = req.params;
 
-    if (isMockDb()) {
+    if (isMockDbMode()) {
       const ngo = findUserById(ngoId);
       if (!ngo || ngo.user_type !== 'ngo') {
         return res.status(404).json({ error: 'NGO not found' });
@@ -228,6 +321,22 @@ router.get('/ngo/:ngoId', authenticateToken, async (req, res) => {
         .map(enrichDonation);
 
       return res.json({ donations });
+    }
+
+    if (useSupabase()) {
+      try {
+        const ngo = await supabaseAdapter.findUserById(ngoId);
+        if (!ngo || ngo.type !== 'ngo') {
+          return res.status(404).json({ error: 'NGO not found' });
+        }
+
+        const donations = await supabaseAdapter.listDonations({ ngo_id: ngoId });
+        return res.json({ donations: donations.map(mapSupabaseDonation) });
+      } catch (error) {
+        console.error('Error fetching Supabase NGO donations:', error);
+        const message = error?.message || 'Internal server error';
+        return res.status(500).json({ error: message });
+      }
     }
 
     // Check if user can access these donations (NGO owner or donor)
@@ -262,7 +371,7 @@ router.get('/ngo/:ngoId', authenticateToken, async (req, res) => {
 // Get all donations (admin or for public display)
 router.get('/', async (req, res) => {
   try {
-    if (isMockDb()) {
+    if (isMockDbMode()) {
       const donations = mockDonations
         .filter((donation) => donation.status === 'completed')
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
@@ -270,6 +379,20 @@ router.get('/', async (req, res) => {
         .map(enrichDonation);
 
       return res.json({ donations });
+    }
+
+    if (useSupabase()) {
+      try {
+        const donations = await supabaseAdapter.listDonations({
+          status: 'completed',
+          limit: 50,
+        });
+        return res.json({ donations: donations.map(mapSupabaseDonation) });
+      } catch (error) {
+        console.error('Error fetching Supabase donations:', error);
+        const message = error?.message || 'Internal server error';
+        return res.status(500).json({ error: message });
+      }
     }
 
     const [donations] = await db.execute(
@@ -299,7 +422,7 @@ router.put('/:id/status', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    if (isMockDb()) {
+    if (isMockDbMode()) {
       const validStatuses = ['pending', 'completed', 'failed', 'cancelled'];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({ error: 'Invalid status' });
@@ -317,6 +440,32 @@ router.put('/:id/status', authenticateToken, async (req, res) => {
       updateMockDonation(id, { status });
 
       return res.json({ message: 'Donation status updated successfully' });
+    }
+
+    if (useSupabase()) {
+      const validStatuses = ['pending', 'confirmed', 'completed', 'failed', 'cancelled'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ error: 'Invalid status' });
+      }
+
+      try {
+        const donation = await supabaseAdapter.findDonationById(id);
+        if (!donation) {
+          return res.status(404).json({ error: 'Donation not found' });
+        }
+
+        if (req.user.id !== donation.donor_id && req.user.id !== donation.ngo_id) {
+          return res.status(403).json({ error: 'Access denied' });
+        }
+
+        await supabaseAdapter.updateDonation(id, { status });
+
+        return res.json({ message: 'Donation status updated successfully' });
+      } catch (error) {
+        console.error('Error updating Supabase donation status:', error);
+        const message = error?.message || 'Internal server error';
+        return res.status(500).json({ error: message });
+      }
     }
 
     // Validate status
@@ -360,7 +509,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (isMockDb()) {
+    if (isMockDbMode()) {
       const donation = mockDonations.find((item) => item.id === id);
 
       if (!donation) {
@@ -372,6 +521,25 @@ router.get('/:id', authenticateToken, async (req, res) => {
       }
 
       return res.json({ donation: enrichDonation(donation) });
+    }
+
+    if (useSupabase()) {
+      try {
+        const donation = await supabaseAdapter.findDonationById(id);
+        if (!donation) {
+          return res.status(404).json({ error: 'Donation not found' });
+        }
+
+        if (req.user.id !== donation.donor_id && req.user.id !== donation.ngo_id) {
+          return res.status(403).json({ error: 'Access denied' });
+        }
+
+        return res.json({ donation: mapSupabaseDonation(donation) });
+      } catch (error) {
+        console.error('Error fetching Supabase donation:', error);
+        const message = error?.message || 'Internal server error';
+        return res.status(500).json({ error: message });
+      }
     }
 
     const [donations] = await db.execute(

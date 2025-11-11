@@ -1,3 +1,18 @@
+"use strict";
+
+const serverless = require("serverless-http");
+const path = require("path");
+const fs = require("fs");
+
+// Load environment variables for local development
+const envPath = path.resolve(__dirname, "../backend/config.env");
+if (fs.existsSync(envPath)) {
+  require("dotenv").config({ path: envPath });
+}
+
+const app = require("../backend/app");
+
+module.exports = serverless(app);
 const path = require('path');
 const serverless = require('serverless-http');
 

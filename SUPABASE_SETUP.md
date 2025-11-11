@@ -1,115 +1,148 @@
 # Supabase Setup Guide for House of Charity
 
-This guide will help you set up Supabase for the House of Charity application.
+This guide walks you through configuring Supabase as the primary database for the House of Charity project.
+
+---
 
 ## 1. Create a Supabase Project
 
-1. Go to [supabase.com](https://supabase.com) and sign up/login
-2. Click "New Project"
-3. Choose your organization
-4. Enter project details:
-   - Name: `house-of-charity`
-   - Database Password: Choose a strong password
-   - Region: Choose the closest region to your users
-5. Click "Create new project"
+1. Visit [supabase.com](https://supabase.com) and sign in (or create an account).
+2. Click **New Project**.
+3. Choose your organization and set:
+   - **Name**: `house-of-charity`
+   - **Database Password**: a strong password
+   - **Region**: closest to your users
+4. Click **Create new project** and wait for provisioning to complete.
 
-## 2. Get Your Project Credentials
+---
 
-1. In your Supabase dashboard, go to Settings > API
-2. Copy the following values:
-   - Project URL
-   - Anon public key
+## 2. Gather API Credentials
 
-## 3. Set Up Environment Variables
+In the Supabase dashboard, open **Settings → API** and copy:
+- **Project URL**
+- **Service role secret** (used by the backend)
+- **Anon public key** (optional, only needed for direct client access)
 
-Create a `.env` file in your project root with the following variables:
+Keep the service role key private — never expose it to the frontend or commit it to source control.
+
+---
+
+## 3. Configure Environment Variables
+
+### Backend (`backend/config.env`)
 
 ```env
-REACT_APP_SUPABASE_URL=your_supabase_project_url
-REACT_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
+# Toggle data sources
+USE_MOCK_DB=false
+USE_SUPABASE=true
+
+# Supabase credentials
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-secret
+# Optional fallback (if you prefer to use the anon key)
+SUPABASE_ANON_KEY=your-anon-key
+
+# JWT settings
+JWT_SECRET=your_jwt_secret_key_change_this_in_production
+JWT_EXPIRE=7d
 ```
 
-## 4. Set Up Database Schema
+### Frontend (`.env` at repo root)
 
-1. In your Supabase dashboard, go to SQL Editor
-2. Copy and paste the contents of `supabase/schema.sql`
-3. Click "Run" to execute the schema
+```env
+REACT_APP_API_URL=http://localhost:5000/api
+```
 
-This will create:
-- `users` table for donors and NGOs
-- `donations` table for tracking donations
-- `requirements` table for NGO requirements
-- Row Level Security (RLS) policies
-- Triggers for automatic timestamps
+The React app talks only to the Express backend, so no Supabase keys are required on the client.
 
-## 5. Configure Authentication
+---
 
-1. Go to Authentication > Settings in your Supabase dashboard
-2. Configure your site URL (e.g., `http://localhost:3000` for development)
-3. Add any additional redirect URLs as needed
-
-## 6. Install Dependencies
-
-Run the following command to install Supabase client:
+## 4. Install Backend Dependencies
 
 ```bash
-npm install @supabase/supabase-js
+cd backend
+npm install
 ```
 
-## 7. Test the Setup
+This pulls in `@supabase/supabase-js` along with the existing packages.
 
-1. Start your development server: `npm start`
-2. Try to register a new user
-3. Check the Supabase dashboard to see if the user was created
+---
 
-## 8. Database Tables Overview
+## 5. Apply the Supabase Schema
 
-### Users Table
-- Stores both donors and NGOs
-- Uses `user_type` field to distinguish between 'donor' and 'ngo'
-- Automatically created when a user signs up
+1. Open the Supabase dashboard and go to **SQL Editor**.
+2. Paste the contents of `supabase_schema.sql` (in the project root).
+3. Click **Run**.
 
-### Donations Table
-- Tracks all donations made by donors to NGOs
-- Includes payment information and status tracking
-- Supports anonymous donations
+The script sets up:
+- `donors` and `ngos` tables (separate entities with shared profile fields)
+- `donor_ngo_links` many-to-many table for donor ↔ NGO connections
+- `donations` table supporting monetary and in-kind contributions
+- `requirements` table for NGO requests
+- A shared trigger to keep `updated_at` timestamps current
 
-### Requirements Table
-- Stores NGO requirements/needs
-- Includes priority levels and deadlines
-- Supports different categories of requirements
+---
+
+## 6. Optional: Supabase Auth Settings
+
+If you plan to use Supabase Auth features:
+1. Navigate to **Authentication → Settings**.
+2. Set the **Site URL** (e.g., `http://localhost:3000` for development).
+3. Add any additional redirect URLs you expect to use.
+
+> The current backend stores bcrypt hashes in the `donors`/`ngos` tables and issues JWTs directly, so Supabase Auth is optional.
+
+---
+
+## 7. Run the App Locally
+
+```bash
+# Backend (Supabase mode)
+cd backend
+npm run dev
+
+# Frontend (separate terminal)
+npm start
+```
+
+Register a donor and an NGO, connect them, create a donation, and post a requirement. Verify data in the Supabase dashboard (`donors`, `ngos`, `donor_ngo_links`, `donations`, `requirements`).
+
+---
+
+## 8. Schema Highlights
+
+- **donors**: profile information, bcrypt password hash, verification flag.
+- **ngos**: NGO mission statement, awards, branding, verification status.
+- **donor_ngo_links**: tracks donor ↔ NGO relationships (`interested`, `active`, `inactive`, `blocked`).
+- **donations**: monetary and in-kind donations with quantity, payment metadata, anonymity, delivery scheduling.
+- **requirements**: NGO requests (category, priority, quantity, deadlines).
+
+---
 
 ## 9. Row Level Security (RLS)
 
-The application uses RLS policies to ensure data security:
+RLS policies are not included in `supabase_schema.sql`.  
+Because the backend uses the service role key, it bypasses RLS and enforces permissions itself.  
+If you later expose Supabase directly to the frontend, add appropriate RLS policies to secure access.
 
-- Users can only view and edit their own profiles
-- NGOs can only manage their own requirements
-- Donations are visible to both the donor and recipient NGO
-- Public requirements are visible to everyone
+---
 
-## 10. Next Steps
+## 10. Deployment Notes
 
-After setup, you can:
-1. Customize the database schema as needed
-2. Add additional RLS policies for specific use cases
-3. Set up real-time subscriptions for live updates
-4. Configure email templates for notifications
+- When deploying the backend (e.g., to Railway or Render), replicate the environment variables from step 3.
+- Keep the service role secret in server environments only.
+- The schema can be customized by editing `supabase_schema.sql` before applying migrations.
+
+---
 
 ## Troubleshooting
 
-### Common Issues
+| Issue | Fix |
+| --- | --- |
+| `Supabase client not initialised` | Check that `USE_SUPABASE=true` and both `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set. |
+| Schema errors (`relation already exists`) | Tables may already exist; drop them manually or run only missing sections. |
+| Backend still using MySQL | Ensure `USE_SUPABASE=true`, restart the backend, and remove conflicting toggles (`USE_POSTGRES`). |
+| Invalid JWT errors | Verify `JWT_SECRET` is consistent between server restarts. |
 
-1. **Environment variables not loading**: Make sure your `.env` file is in the project root and variables start with `REACT_APP_`
+For advanced usage (indexes, views, CRON jobs), extend `supabase_schema.sql` or use Supabase Functions.
 
-2. **RLS blocking queries**: Check that your RLS policies are correctly configured
-
-3. **Authentication errors**: Verify your Supabase URL and anon key are correct
-
-4. **Database connection issues**: Ensure your Supabase project is active and not paused
-
-### Getting Help
-
-- [Supabase Documentation](https://supabase.com/docs)
-- [Supabase Discord](https://discord.supabase.com)
-- [GitHub Issues](https://github.com/supabase/supabase/issues) 

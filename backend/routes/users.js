@@ -9,20 +9,31 @@ const {
   mockDonations, 
   mockRequirements 
 } = require('../services/mockData');
+const { isMockDb, useSupabase } = require('../utils/dbMode');
+
+let supabaseAdapter = null;
+if (useSupabase()) {
+  supabaseAdapter = require('../services/supabaseAdapter');
+}
 const router = express.Router();
 
-const isMockDb = () => useMockDb();
+const isMockDbMode = () => isMockDb();
 const sanitizeUser = (user) => {
   if (!user) return null;
-  const { password, ...rest } = user;
+  const { password, password_hash, ...rest } = user;
   return rest;
 };
 
 // Get all NGOs (public endpoint)
 router.get('/ngos', async (req, res) => {
   try {
-    if (isMockDb()) {
+    if (isMockDbMode()) {
       const ngos = getNGOs().map(sanitizeUser);
+      return res.json({ ngos });
+    }
+
+    if (useSupabase()) {
+      const ngos = await supabaseAdapter.listNgos();
       return res.json({ ngos });
     }
 
@@ -45,7 +56,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (isMockDb()) {
+    if (isMockDbMode()) {
       if (req.user.id !== id) {
         return res.status(403).json({ error: 'You can only view your own profile in mock mode' });
       }
@@ -56,6 +67,25 @@ router.get('/:id', authenticateToken, async (req, res) => {
       }
 
       return res.json({ user: sanitizeUser(user) });
+    }
+
+    if (useSupabase()) {
+      try {
+        if (req.user.id !== id) {
+          return res.status(403).json({ error: 'You can only view your own profile' });
+        }
+
+        const result = await supabaseAdapter.findUserById(id);
+        if (!result) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        return res.json({ user: result.mapped });
+      } catch (error) {
+        console.error('Error fetching Supabase user:', error);
+        const message = error?.message || 'Internal server error';
+        return res.status(500).json({ error: message });
+      }
     }
 
     const [users] = await db.execute(
@@ -80,7 +110,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
-    if (isMockDb()) {
+    if (isMockDbMode()) {
       if (req.user.id !== id) {
         return res.status(403).json({ error: 'You can only update your own profile' });
       }
@@ -107,6 +137,61 @@ router.put('/:id', authenticateToken, async (req, res) => {
         message: 'Profile updated successfully',
         user: sanitizeUser(updatedUser),
       });
+    }
+
+    if (useSupabase()) {
+      try {
+        const existing = await supabaseAdapter.findUserById(id);
+        if (!existing) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (req.user.id !== id) {
+          return res.status(403).json({ error: 'You can only update your own profile' });
+        }
+
+        const baseAllowed = ['name', 'phone', 'address', 'city', 'state', 'country', 'pincode', 'description', 'website', 'logo_url', 'verified'];
+        const ngoExtras = ['works_done', 'awards_received'];
+        const allowedFields = existing.type === 'ngo' ? [...baseAllowed, ...ngoExtras] : baseAllowed;
+
+        const columnMap = {
+          phone: 'phone_number',
+          address: 'address',
+          city: 'city',
+          state: 'state',
+          country: 'country',
+          pincode: 'pincode',
+          description: 'description',
+          website: 'website',
+          logo_url: 'logo_url',
+          verified: 'verified',
+          works_done: 'works_done',
+          awards_received: 'awards_received',
+          name: 'name',
+        };
+
+        const updatePayload = {};
+        allowedFields.forEach((field) => {
+          if (updates[field] !== undefined) {
+            updatePayload[columnMap[field] || field] = updates[field];
+          }
+        });
+
+        if (Object.keys(updatePayload).length === 0) {
+          return res.status(400).json({ error: 'No valid fields to update' });
+        }
+
+        const result = await supabaseAdapter.updateUser(existing.type, id, updatePayload);
+
+        return res.json({
+          message: 'Profile updated successfully',
+          user: result.mapped,
+        });
+      } catch (error) {
+        console.error('Error updating Supabase user:', error);
+        const message = error?.message || 'Internal server error';
+        return res.status(500).json({ error: message });
+      }
     }
 
     // Check if user exists and user is updating their own profile
@@ -158,7 +243,7 @@ router.get('/:id/stats', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (isMockDb()) {
+    if (isMockDbMode()) {
       const user = findUserById(id);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
@@ -194,6 +279,27 @@ router.get('/:id/stats', authenticateToken, async (req, res) => {
       }
 
       return res.json({ stats });
+    }
+
+    if (useSupabase()) {
+      try {
+        const result = await supabaseAdapter.findUserById(id);
+        if (!result) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (result.type === 'donor') {
+          const stats = await supabaseAdapter.getDonorStats(id);
+          return res.json({ stats });
+        }
+
+        const stats = await supabaseAdapter.getNgoStats(id);
+        return res.json({ stats });
+      } catch (error) {
+        console.error('Error fetching Supabase user stats:', error);
+        const message = error?.message || 'Internal server error';
+        return res.status(500).json({ error: message });
+      }
     }
 
     // Check if user exists

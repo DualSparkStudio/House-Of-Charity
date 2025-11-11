@@ -1,5 +1,21 @@
 const mysql = require('mysql2');
-require('dotenv').config({ path: './config.env' });
+const path = require('path');
+const fs = require('fs');
+
+const envPath = path.resolve(__dirname, '../config.env');
+if (fs.existsSync(envPath)) {
+  require('dotenv').config({ path: envPath });
+}
+
+if (process.env.USE_SUPABASE === 'true') {
+  console.log('ℹ️ Supabase mode enabled. Skipping MySQL pool initialisation.');
+  module.exports = {
+    execute: async () => {
+      throw new Error('MySQL database disabled because USE_SUPABASE=true');
+    },
+  };
+  return;
+}
 
 // Create MySQL connection pool for better performance
 const db = mysql.createPool({
