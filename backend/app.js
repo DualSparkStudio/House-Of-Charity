@@ -13,6 +13,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const donationRoutes = require('./routes/donations');
 const requirementRoutes = require('./routes/requirements');
+const { useSupabase, supabaseClient } = require('./utils/dbMode');
 
 const app = express();
 
@@ -43,6 +44,44 @@ const healthCheckHandler = (req, res) => {
 };
 app.get('/health', healthCheckHandler);
 app.get('/api/health', healthCheckHandler);
+
+// Database connectivity status endpoint
+app.get('/api/db-status', async (req, res) => {
+  const mode =
+    process.env.USE_MOCK_DB === 'true'
+      ? 'mock'
+      : useSupabase()
+      ? 'supabase'
+      : 'mysql';
+
+  const payload = {
+    mode,
+    supabase: {
+      enabled: useSupabase(),
+      connected: false,
+    },
+  };
+
+  if (useSupabase() && supabaseClient) {
+    try {
+      const { data, error, count } = await supabaseClient
+        .from('donations')
+        .select('id', { count: 'exact', limit: 1 });
+
+      if (error) {
+        throw error;
+      }
+
+      payload.supabase.connected = true;
+      payload.supabase.sampleCount =
+        typeof count === 'number' ? count : data?.length ?? 0;
+    } catch (err) {
+      payload.supabase.error = err?.message || 'Unknown Supabase error';
+    }
+  }
+
+  res.json(payload);
+});
 
 // API Routes
 app.use('/api/auth', authRoutes);
