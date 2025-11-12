@@ -32,15 +32,17 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
+// Health check endpoint (supports both legacy `/health` and Vercel `/api/health`)
+const healthCheckHandler = (req, res) => {
   res.json({
     status: 'OK',
     message: 'House of Charity API is running',
     timestamp: new Date().toISOString(),
     mode: process.env.USE_MOCK_DB === 'true' ? 'mock' : 'database',
   });
-});
+};
+app.get('/health', healthCheckHandler);
+app.get('/api/health', healthCheckHandler);
 
 // API Routes
 app.use('/api/auth', authRoutes);
