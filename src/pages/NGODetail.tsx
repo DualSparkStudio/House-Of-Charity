@@ -781,15 +781,15 @@ const NGODetail: React.FC = () => {
                 <DonationForm
                   ngoId={ngo?.id || ''}
                   ngoName={ngo?.name || 'Unknown NGO'}
-                    initialData={donationPreset || undefined}
+                  initialData={donationPreset || undefined}
                   onSuccess={() => {
                     setShowDonationModal(false);
-                      setDonationPreset(null);
+                    setDonationPreset(null);
                   }}
-                    onCancel={() => {
-                      setShowDonationModal(false);
-                      setDonationPreset(null);
-                    }}
+                  onCancel={() => {
+                    setShowDonationModal(false);
+                    setDonationPreset(null);
+                  }}
                 />
               </div>
             </div>
