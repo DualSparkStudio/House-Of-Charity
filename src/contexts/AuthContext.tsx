@@ -16,9 +16,9 @@ type AuthUser = {
 export type Connection = {
   id: string;
   name: string;
-  email?: string;
-  phone?: string;
-  description?: string;
+  email?: string | null;
+  phone?: string | null;
+  description?: string | null;
 };
 
 interface AuthContextType {
