@@ -60,6 +60,14 @@ app.get('/api/db-status', async (req, res) => {
     supabase: {
       enabled: useSupabase(),
       connected: false,
+      env: {
+        useSupabase: process.env.USE_SUPABASE || null,
+        useMockDb: process.env.USE_MOCK_DB || null,
+        hasUrl: Boolean(process.env.SUPABASE_URL),
+        hasKey: Boolean(
+          process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
+        ),
+      },
     },
   };
 
