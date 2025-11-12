@@ -1,6 +1,5 @@
 "use strict";
 
-const serverless = require("serverless-http");
 const path = require("path");
 const fs = require("fs");
 
@@ -15,4 +14,5 @@ if (!process.env.FRONTEND_URL && process.env.VERCEL_URL) {
 
 const app = require("../backend/app");
 
-module.exports = serverless(app);
+module.exports = app;
+module.exports.default = app;
