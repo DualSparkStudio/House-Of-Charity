@@ -12,7 +12,6 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../api/database';
 import RequirementForm from '../components/RequirementForm';
-import ProfileEditor from '../components/ProfileEditor';
 import { useAuth } from '../contexts/AuthContext';
 import { Donation } from '../types';
 
@@ -401,7 +400,6 @@ const Dashboard: React.FC = () => {
               ))}
             </div>
 
-            <ProfileEditor />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="card">

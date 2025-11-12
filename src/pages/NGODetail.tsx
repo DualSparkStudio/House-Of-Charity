@@ -1,9 +1,10 @@
-import { ArrowLeft, Award, Calendar, CheckCircle, DollarSign, Globe, Heart, Image as ImageIcon, Mail, MapPin, Phone, Star, Target, Users, X } from 'lucide-react';
+import { ArrowLeft, Award, Calendar, CheckCircle, DollarSign, Globe, Heart, Image as ImageIcon, Mail, MapPin, Pencil, Phone, Star, Target, Users, X } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { apiService } from '../api/database';
 import DonationForm from '../components/DonationForm';
+import ProfileEditor from '../components/ProfileEditor';
 import { useAuth } from '../contexts/AuthContext';
 import { NGO } from '../types';
 
@@ -25,7 +26,9 @@ const NGODetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showDonationModal, setShowDonationModal] = useState(false);
   const [donationPreset, setDonationPreset] = useState<DonationPreset | null>(null);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const isDonor = userProfile?.user_type === 'donor';
+  const isOwner = userProfile?.user_type === 'ngo' && userProfile?.id === id;
   const isConnected = useMemo(
     () => connections.some((connection) => connection.id === id),
     [connections, id]
@@ -105,6 +108,14 @@ const NGODetail: React.FC = () => {
     fetchNGODetails();
   }, [id]);
 
+  useEffect(() => {
+    if (isOwner && userProfile) {
+      setNgo((previous) =>
+        previous ? { ...previous, ...userProfile } : (userProfile as NGO)
+      );
+    }
+  }, [isOwner, userProfile]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -182,66 +193,84 @@ const NGODetail: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <button 
-            onClick={() => handleDonateClick()}
-            className="btn-primary flex-1"
-          >
-            <Heart className="h-5 w-5 mr-2" />
-            Make a Donation
-          </button>
-          {!isDonor && (
-            <Link
-              to="/login"
-              className="btn-primary flex-1 text-center"
-            >
-              <Heart className="h-5 w-5 mr-2 inline-block" />
-              Login to Donate
-            </Link>
-          )}
-          {isDonor ? (
-            isConnected ? (
-              <button
-                className="btn-outline flex-1 border-red-200 text-red-600 hover:text-red-700 hover:border-red-300"
-                onClick={() => {
-                  removeConnection(ngo.id);
-                  toast.success(`Removed ${ngo.name} from your connections.`);
-                }}
-              >
-                <Users className="h-5 w-5 mr-2" />
-                Remove Connection
-              </button>
-            ) : (
-              <button
-                className="btn-outline flex-1"
-                onClick={() => {
-                  if (!ngo) return;
-                  addConnection({
-                    id: ngo.id,
-                    name: ngo.name || 'Unknown NGO',
-                    email: ngo.email,
-                    phone: ngo.phone,
-                    description: ngo.description,
-                  });
-                  toast.success(`Connected with ${ngo.name}`);
-                }}
-              >
-                <Users className="h-5 w-5 mr-2" />
-                Connect with NGO
-              </button>
-            )
-          ) : (
+          {isOwner ? (
             <button
-              className="btn-outline flex-1"
-              onClick={() => {
-                toast.error('Please login as a donor to connect.');
-                navigate('/login');
-              }}
+              className="btn-primary flex-1"
+              onClick={() => setIsEditingProfile((prev) => !prev)}
             >
-              <Users className="h-5 w-5 mr-2" />
-              Connect with NGO
+              <Pencil className="h-5 w-5 mr-2" />
+              {isEditingProfile ? 'Close Editor' : 'Edit Profile'}
             </button>
+          ) : (
+            <>
+              <button 
+                onClick={() => handleDonateClick()}
+                className="btn-primary flex-1"
+              >
+                <Heart className="h-5 w-5 mr-2" />
+                Make a Donation
+              </button>
+              {!isDonor && (
+                <Link
+                  to="/login"
+                  className="btn-primary flex-1 text-center"
+                >
+                  <Heart className="h-5 w-5 mr-2 inline-block" />
+                  Login to Donate
+                </Link>
+              )}
+              {isDonor ? (
+                isConnected ? (
+                  <button
+                    className="btn-outline flex-1 border-red-200 text-red-600 hover:text-red-700 hover:border-red-300"
+                    onClick={() => {
+                      removeConnection(ngo.id);
+                      toast.success(`Removed ${ngo.name} from your connections.`);
+                    }}
+                  >
+                    <Users className="h-5 w-5 mr-2" />
+                    Remove Connection
+                  </button>
+                ) : (
+                  <button
+                    className="btn-outline flex-1"
+                    onClick={() => {
+                      if (!ngo) return;
+                      addConnection({
+                        id: ngo.id,
+                        name: ngo.name || 'Unknown NGO',
+                        email: ngo.email,
+                        phone: ngo.phone,
+                        description: ngo.description,
+                      });
+                      toast.success(`Connected with ${ngo.name}`);
+                    }}
+                  >
+                    <Users className="h-5 w-5 mr-2" />
+                    Connect with NGO
+                  </button>
+                )
+              ) : (
+                <button
+                  className="btn-outline flex-1"
+                  onClick={() => {
+                    toast.error('Please login as a donor to connect.');
+                    navigate('/login');
+                  }}
+                >
+                  <Users className="h-5 w-5 mr-2" />
+                  Connect with NGO
+                </button>
+              )}
+            </>
           )}
         </div>
+
+        {isOwner && isEditingProfile && (
+          <div className="mb-8">
+            <ProfileEditor onSuccess={() => setIsEditingProfile(false)} />
+          </div>
+        )}
 
         {/* About Section - Full Width */}
         <div className="card mb-6">

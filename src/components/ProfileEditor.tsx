@@ -4,6 +4,10 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import type { Donor, NGO } from '../types';
 
+type ProfileEditorProps = {
+  onSuccess?: () => void;
+};
+
 type ProfileFormValues = {
   name?: string;
   phone?: string;
@@ -42,7 +46,7 @@ const toCleanPayload = (
   return payload;
 };
 
-const ProfileEditor: React.FC = () => {
+const ProfileEditor: React.FC<ProfileEditorProps> = ({ onSuccess }) => {
   const { userProfile, updateProfile } = useAuth();
   const isNgo = userProfile?.user_type === 'ngo';
 
@@ -116,6 +120,8 @@ const ProfileEditor: React.FC = () => {
 
       await updateProfile(payload);
       toast.success('Profile updated successfully');
+      reset(values);
+      onSuccess?.();
     } catch (error: any) {
       toast.error(error?.message || 'Failed to update profile');
     }

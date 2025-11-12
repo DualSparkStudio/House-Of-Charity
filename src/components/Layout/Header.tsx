@@ -38,7 +38,7 @@ const Header: React.FC = () => {
             </Link>
             {currentUser && (
               <Link to="/dashboard" className="text-gray-700 hover:text-primary-600 transition-colors">
-                Profile
+                {userProfile?.user_type === 'ngo' ? 'Dashboard' : 'Profile'}
               </Link>
             )}
           </nav>
@@ -72,12 +72,16 @@ const Header: React.FC = () => {
                   {isUserMenuOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                       <Link
-                        to={userProfile?.user_type === 'ngo' ? `/ngos/${userProfile.id}` : '/dashboard'}
+                        to={
+                          userProfile?.user_type === 'ngo'
+                            ? `/ngos/${userProfile.id}`
+                            : '/dashboard'
+                        }
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <User className="h-4 w-4 mr-3" />
-                        Profile
+                        {userProfile?.user_type === 'ngo' ? 'Dashboard' : 'Profile'}
                       </Link>
                       <Link
                         to="/settings"
@@ -144,7 +148,7 @@ const Header: React.FC = () => {
                     className="text-gray-700 hover:text-primary-600 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Profile
+                    {userProfile?.user_type === 'ngo' ? 'Dashboard' : 'Profile'}
                   </Link>
                 </>
               )}
