@@ -41,6 +41,8 @@ const donorColumns = [
   "updated_at",
 ];
 
+const donorSelectColumns = donorColumns.join(", ");
+
 const ngoColumns = [
   "id",
   "name",
@@ -61,6 +63,8 @@ const ngoColumns = [
   "created_at",
   "updated_at",
 ];
+
+const ngoSelectColumns = ngoColumns.join(", ");
 
 const defaultUserFields = {
   city: null,
@@ -122,14 +126,14 @@ async function getSingle(queryBuilder) {
 
 async function findUserByEmail(email) {
   const donor = await getSingle(
-    supabase.from("donors").select(donorColumns).eq("email", email)
+    supabase.from("donors").select(donorSelectColumns).eq("email", email)
   );
   if (donor) {
     return { record: donor, type: "donor", mapped: mapDonor(donor) };
   }
 
   const ngo = await getSingle(
-    supabase.from("ngos").select(ngoColumns).eq("email", email)
+    supabase.from("ngos").select(ngoSelectColumns).eq("email", email)
   );
   if (ngo) {
     return { record: ngo, type: "ngo", mapped: mapNgo(ngo) };
@@ -140,14 +144,14 @@ async function findUserByEmail(email) {
 
 async function findUserById(id) {
   const donor = await getSingle(
-    supabase.from("donors").select(donorColumns).eq("id", id)
+    supabase.from("donors").select(donorSelectColumns).eq("id", id)
   );
   if (donor) {
     return { record: donor, type: "donor", mapped: mapDonor(donor) };
   }
 
   const ngo = await getSingle(
-    supabase.from("ngos").select(ngoColumns).eq("id", id)
+    supabase.from("ngos").select(ngoSelectColumns).eq("id", id)
   );
   if (ngo) {
     return { record: ngo, type: "ngo", mapped: mapNgo(ngo) };
@@ -158,7 +162,8 @@ async function findUserById(id) {
 
 async function createUser(type, payload) {
   const table = type === "donor" ? "donors" : "ngos";
-  const columns = type === "donor" ? donorColumns : ngoColumns;
+  const columns =
+    type === "donor" ? donorSelectColumns : ngoSelectColumns;
 
   const { data, error } = await supabase
     .from(table)
@@ -175,7 +180,8 @@ async function createUser(type, payload) {
 
 async function updateUser(type, id, updates) {
   const table = type === "donor" ? "donors" : "ngos";
-  const columns = type === "donor" ? donorColumns : ngoColumns;
+  const columns =
+    type === "donor" ? donorSelectColumns : ngoSelectColumns;
 
   const { data, error } = await supabase
     .from(table)
@@ -194,7 +200,7 @@ async function updateUser(type, id, updates) {
 async function listNgos() {
   const { data, error } = await supabase
     .from("ngos")
-    .select(ngoColumns)
+    .select(ngoSelectColumns)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
