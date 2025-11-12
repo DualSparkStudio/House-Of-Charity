@@ -3,8 +3,9 @@
 const path = require("path");
 const fs = require("fs");
 
+const shouldLoadLocalEnv = !process.env.VERCEL && !process.env.CI;
 const envPath = path.resolve(process.cwd(), "backend/config.env");
-if (fs.existsSync(envPath)) {
+if (shouldLoadLocalEnv && fs.existsSync(envPath)) {
   require("dotenv").config({ path: envPath });
 }
 
