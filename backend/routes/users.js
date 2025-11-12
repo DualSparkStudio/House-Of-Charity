@@ -151,7 +151,16 @@ router.put('/:id', authenticateToken, async (req, res) => {
         }
 
         const baseAllowed = ['name', 'phone', 'address', 'city', 'state', 'country', 'pincode', 'description', 'website', 'logo_url', 'verified'];
-        const ngoExtras = ['works_done', 'awards_received'];
+        const ngoExtras = [
+          'works_done',
+          'awards_received',
+          'about',
+          'gallery',
+          'current_requirements',
+          'future_plans',
+          'awards_and_recognition',
+          'recent_activities',
+        ];
         const allowedFields = existing.type === 'ngo' ? [...baseAllowed, ...ngoExtras] : baseAllowed;
 
         const columnMap = {
@@ -167,6 +176,12 @@ router.put('/:id', authenticateToken, async (req, res) => {
           verified: 'verified',
           works_done: 'works_done',
           awards_received: 'awards_received',
+          about: 'about',
+          gallery: 'gallery',
+          current_requirements: 'current_requirements',
+          future_plans: 'future_plans',
+          awards_and_recognition: 'awards_and_recognition',
+          recent_activities: 'recent_activities',
           name: 'name',
         };
 

@@ -12,6 +12,14 @@ export interface User {
   description?: string;
   website?: string;
   logo_url?: string;
+  works_done?: string;
+  awards_received?: string;
+  about?: string;
+  gallery?: string;
+  current_requirements?: string;
+  future_plans?: string;
+  awards_and_recognition?: string;
+  recent_activities?: string;
   verified?: boolean;
   created_at: string;
   updated_at: string;
