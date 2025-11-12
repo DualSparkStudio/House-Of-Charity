@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
 import { AuthProvider } from './contexts/AuthContext';
+import { getApiBaseUrl } from './utils/apiBase';
 import Dashboard from './pages/Dashboard';
 import Connections from './pages/Connections';
 import DemoDonorDashboard from './pages/DemoDonorDashboard';
@@ -17,9 +18,7 @@ import Register from './pages/auth/Register';
 function App() {
   useEffect(() => {
     const checkApiHealth = async () => {
-      const baseApiUrl =
-        process.env.REACT_APP_API_URL ||
-        (process.env.NODE_ENV === 'development' ? 'http://localhost:5000/api' : '/api');
+      const baseApiUrl = getApiBaseUrl();
 
       try {
         const response = await fetch(`${baseApiUrl.replace(/\/$/, '')}/health`);

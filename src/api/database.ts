@@ -1,6 +1,7 @@
 import { Donor, NGO, Requirement } from '../types';
+import { getApiBaseUrl } from '../utils/apiBase';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = getApiBaseUrl();
 
 class ApiService {
   private getAuthHeaders() {
