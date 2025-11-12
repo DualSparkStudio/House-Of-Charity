@@ -81,7 +81,7 @@ const Header: React.FC = () => {
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <User className="h-4 w-4 mr-3" />
-                        {userProfile?.user_type === 'ngo' ? 'Dashboard' : 'Profile'}
+                        {userProfile?.user_type === 'ngo' ? 'Profile' : 'Profile'}
                       </Link>
                       <Link
                         to="/settings"
