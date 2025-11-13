@@ -11,6 +11,7 @@ const {
   linkDonorNgo: linkMockDonorNgo,
   unlinkDonorNgo: unlinkMockDonorNgo,
   getConnectedDonorsForNgo: getMockConnectedDonorsForNgo,
+  getConnectedNgosForDonor: getMockConnectedNgosForDonor,
 } = require('../services/mockData');
 const { isMockDb, useSupabase } = require('../utils/dbMode');
 const {
@@ -197,6 +198,53 @@ router.get('/:id/connections/donors', authenticateToken, async (req, res) => {
     return res.status(501).json({ error: 'Connection lookup not available for this database mode' });
   } catch (error) {
     console.error('Fetch connected donors error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/:id/connections/ngos', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (req.user.id !== id) {
+      return res.status(403).json({ error: 'You can only view your own connections' });
+    }
+
+    if (isMockDbMode()) {
+      const user = findUserById(id);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      if (user.user_type !== 'donor') {
+        return res.status(403).json({ error: 'Only donors have connected NGOs' });
+      }
+
+      const ngos = getMockConnectedNgosForDonor(id);
+      return res.json({ ngos });
+    }
+
+    if (useSupabase()) {
+      try {
+        const result = await supabaseAdapter.findUserById(id);
+        if (!result) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+        if (result.type !== 'donor') {
+          return res.status(403).json({ error: 'Only donors have connected NGOs' });
+        }
+
+        const ngos = await supabaseAdapter.getConnectedNgosForDonor(id);
+        return res.json({ ngos });
+      } catch (error) {
+        console.error('Supabase fetch connected NGOs error:', error);
+        const message = error?.message || 'Unable to load connected NGOs';
+        return res.status(500).json({ error: message });
+      }
+    }
+
+    return res.status(501).json({ error: 'Connection lookup not available for this database mode' });
+  } catch (error) {
+    console.error('Fetch connected NGOs error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

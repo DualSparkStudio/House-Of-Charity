@@ -61,24 +61,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const lastNotificationIdsRef = useRef<Set<string>>(new Set());
 
-  const loadConnections = (userId: string) => {
+  const loadConnections = (userId: string): Connection[] => {
     try {
       if (typeof window === 'undefined') {
         setConnections([]);
-        return;
+        return [];
       }
       const stored = sessionStorage.getItem(`connections_${userId}`);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
           setConnections(parsed);
-          return;
+          return parsed;
         }
       }
     } catch (error) {
       console.warn('Failed to load connections from storage', error);
     }
     setConnections([]);
+    return [];
   };
 
   const persistConnections = (userId: string, list: Connection[]) => {
@@ -86,6 +87,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       sessionStorage.setItem(`connections_${userId}`, JSON.stringify(list));
     }
   };
+
+  const fetchConnections = useCallback(
+    async (userId: string): Promise<Connection[]> => {
+      if (!userId || !apiService.isAuthenticated()) {
+        return [];
+      }
+
+      try {
+        const response = await apiService.getConnectedNgos(userId);
+        const ngos: Partial<NGO>[] = Array.isArray(response?.ngos) ? response.ngos : [];
+        const mapped: Connection[] = ngos
+          .filter((ngo) => ngo && typeof ngo.id === 'string')
+          .map((ngo) => ({
+            id: ngo.id as string,
+            name: ngo.name || 'Unnamed NGO',
+            email: ngo.email ?? null,
+            phone: ngo.phone ?? null,
+            description: ngo.description ?? null,
+          }));
+
+        setConnections(mapped);
+        persistConnections(userId, mapped);
+
+        setUserProfile((prev) => {
+          if (!prev || prev.id !== userId || prev.user_type !== 'donor') {
+            return prev;
+          }
+          return {
+            ...prev,
+            connected_ngos: mapped.map((item) => item.id),
+          } as Donor;
+        });
+
+        return mapped;
+      } catch (error) {
+        console.error('Failed to fetch connected NGOs:', error);
+        return [];
+      }
+    },
+    []
+  );
 
   const addConnection = async (connection: Connection) => {
     if (!userProfile || userProfile.user_type !== 'donor') {
@@ -245,10 +287,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUserProfile(response.user as Donor | NGO);
           if (response.user?.user_type === 'donor') {
             loadConnections(response.user.id);
+            await fetchConnections(response.user.id);
           } else {
             setConnections([]);
           }
-          await refreshNotifications();
+          await refreshNotifications({ suppressToasts: true });
         } catch (error) {
           console.error('Token verification failed:', error);
           apiService.logout();
@@ -274,7 +317,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     checkAuth();
-  }, [refreshNotifications]);
+  }, [fetchConnections, refreshNotifications]);
 
   useEffect(() => {
     let interval: number | undefined;
@@ -301,10 +344,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserProfile(response.user as Donor | NGO);
       if (response.user?.user_type === 'donor') {
         loadConnections(response.user.id);
+        await fetchConnections(response.user.id);
       } else {
         setConnections([]);
       }
-      await refreshNotifications();
+      await refreshNotifications({ suppressToasts: true });
     } catch (error) {
       throw error;
     } finally {
@@ -320,10 +364,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserProfile(response.user as Donor | NGO);
       if (response.user?.user_type === 'donor') {
         loadConnections(response.user.id);
+        await fetchConnections(response.user.id);
       } else {
         setConnections([]);
       }
-      await refreshNotifications();
+      await refreshNotifications({ suppressToasts: true });
     } catch (error) {
       throw error;
     } finally {
