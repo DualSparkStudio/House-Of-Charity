@@ -38,7 +38,7 @@ const Header: React.FC = () => {
             </Link>
             {currentUser && (
               <Link to="/dashboard" className="text-gray-700 hover:text-primary-600 transition-colors">
-                {userProfile?.user_type === 'ngo' ? 'Dashboard' : 'Profile'}
+                Dashboard
               </Link>
             )}
           </nav>
@@ -147,15 +147,13 @@ const Header: React.FC = () => {
                 NGOs
               </Link>
               {currentUser && (
-                <>
-                  <Link
-                    to="/dashboard"
-                    className="text-gray-700 hover:text-primary-600 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {userProfile?.user_type === 'ngo' ? 'Dashboard' : 'Profile'}
-                  </Link>
-                </>
+                <Link
+                  to="/dashboard"
+                  className="text-gray-700 hover:text-primary-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
               )}
             </nav>
           </div>
