@@ -30,6 +30,7 @@ interface AuthContextType {
   notifications: Notification[];
   unreadNotifications: number;
   notificationsLoading: boolean;
+  notificationsError: string | null;
   addConnection: (connection: Connection) => Promise<void>;
   removeConnection: (id: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
@@ -58,8 +59,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [connections, setConnections] = useState<Connection[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState<string | null>(null);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const lastNotificationIdsRef = useRef<Set<string>>(new Set());
+  const notificationsInitializedRef = useRef(false);
 
   const loadConnections = (userId: string): Connection[] => {
     try {
@@ -181,26 +184,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshNotifications = useCallback(
     async (
-      { silent, suppressToasts }: { silent?: boolean; suppressToasts?: boolean } = {}
+      {
+        silent,
+        suppressToasts,
+        unreadOnly,
+        limit,
+      }: {
+        silent?: boolean;
+        suppressToasts?: boolean;
+        unreadOnly?: boolean;
+        limit?: number;
+      } = {}
     ): Promise<Notification[]> => {
       if (!apiService.isAuthenticated()) {
         setNotifications([]);
         setUnreadNotifications(0);
         lastNotificationIdsRef.current = new Set();
+        notificationsInitializedRef.current = false;
+        setNotificationsError(null);
+        if (!silent) {
+          setNotificationsLoading(false);
+        }
         return [];
       }
 
       if (!silent) {
         setNotificationsLoading(true);
+        setNotificationsError(null);
       }
 
       try {
-        const response = await apiService.getNotifications();
+        const response = await apiService.getNotifications({
+          unreadOnly,
+          limit,
+        });
         const list = response?.notifications || [];
         const previousIds = lastNotificationIdsRef.current;
         const newNotifications = list.filter((notification) => !previousIds.has(notification.id));
 
-        if (!suppressToasts && previousIds.size > 0 && newNotifications.length > 0) {
+        if (!suppressToasts && notificationsInitializedRef.current && newNotifications.length > 0) {
           newNotifications.forEach((notification) => {
             const summary = notification.message
               ? `${notification.title}: ${notification.message}`
@@ -213,6 +235,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         lastNotificationIdsRef.current = new Set(list.map((notification) => notification.id));
+        notificationsInitializedRef.current = true;
 
         setNotifications(list);
         setUnreadNotifications(
@@ -220,8 +243,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ? response.unreadCount
             : list.filter((item) => !item.read).length
         );
+        setNotificationsError(null);
         return list;
       } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Failed to load notifications';
+        if (!silent) {
+          setNotificationsError(message);
+          toast.error(message, { icon: '⚠️' });
+        }
+        if (silent && !notificationsInitializedRef.current) {
+          setNotificationsError(message);
+        }
         if (!silent) {
           console.error('Failed to load notifications:', error);
         }
@@ -385,6 +418,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setNotifications([]);
       setUnreadNotifications(0);
       lastNotificationIdsRef.current = new Set();
+      notificationsInitializedRef.current = false;
+      setNotificationsError(null);
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -418,6 +453,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     notifications,
     unreadNotifications,
     notificationsLoading,
+    notificationsError,
     refreshNotifications,
     markNotificationsAsRead,
   };

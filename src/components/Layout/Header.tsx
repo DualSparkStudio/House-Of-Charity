@@ -11,6 +11,7 @@ const Header: React.FC = () => {
     notifications,
     unreadNotifications,
     notificationsLoading,
+    notificationsError,
     refreshNotifications,
     markNotificationsAsRead,
   } = useAuth();
@@ -116,6 +117,10 @@ const Header: React.FC = () => {
                         {notificationsLoading ? (
                           <div className="flex items-center justify-center py-6">
                             <Loader2 className="h-5 w-5 animate-spin text-primary-600" />
+                          </div>
+                        ) : notificationsError ? (
+                          <div className="px-4 py-6 text-sm text-red-500 text-center">
+                            {notificationsError}
                           </div>
                         ) : notifications.length === 0 ? (
                           <div className="px-4 py-6 text-sm text-gray-500 text-center">
