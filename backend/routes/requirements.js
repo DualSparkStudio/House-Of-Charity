@@ -8,9 +8,12 @@ const {
   addRequirement: addMockRequirement, 
   mockRequirements, 
   updateRequirement: updateMockRequirement, 
-  deleteRequirement: deleteMockRequirement 
+  deleteRequirement: deleteMockRequirement,
 } = require('../services/mockData');
 const { isMockDb, useSupabase } = require('../utils/dbMode');
+const {
+  notifyRequirementPosted,
+} = require('../services/notificationService');
 
 let supabaseAdapter = null;
 if (useSupabase()) {
@@ -102,6 +105,15 @@ router.post('/', authenticateToken, async (req, res) => {
         deadline: deadline || null,
       });
 
+      await notifyRequirementPosted({
+        ngoId: ngo_id,
+        requirementId: requirement.id,
+        ngoName: ngo.name || 'Your connected NGO',
+        title,
+        amountNeeded: amount_needed,
+        currency: currency || 'USD',
+      });
+
       return res.status(201).json({
         message: 'Requirement created successfully',
         requirement: enrichRequirement(requirement),
@@ -136,6 +148,15 @@ router.post('/', authenticateToken, async (req, res) => {
         };
 
         const requirement = await supabaseAdapter.createRequirement(payload);
+
+        await notifyRequirementPosted({
+          ngoId: ngo_id,
+          requirementId: requirement.id,
+          ngoName: user.mapped?.name || 'Your connected NGO',
+          title,
+          amountNeeded: amount_needed,
+          currency: currency || 'INR',
+        });
 
         return res.status(201).json({
           message: 'Requirement created successfully',

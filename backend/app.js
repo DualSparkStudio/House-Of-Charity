@@ -14,6 +14,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const donationRoutes = require('./routes/donations');
 const requirementRoutes = require('./routes/requirements');
+const notificationRoutes = require('./routes/notifications');
 const { useSupabase, supabaseClient } = require('./utils/dbMode');
 
 const app = express();
@@ -97,6 +98,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/donations', donationRoutes);
 app.use('/api/requirements', requirementRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

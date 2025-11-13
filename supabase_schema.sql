@@ -143,6 +143,27 @@ create index if not exists requirements_status_idx on public.requirements(status
 create index if not exists requirements_priority_idx on public.requirements(priority);
 create index if not exists requirements_category_idx on public.requirements(category);
 
+-- notifications table
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  account_type text not null
+    check (account_type in ('donor','ngo')),
+  title text not null,
+  message text not null,
+  type text not null
+    check (type in ('donation','requirement','connection','general')),
+  related_id uuid,
+  related_type text,
+  meta jsonb not null default '{}'::jsonb,
+  read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists notifications_user_idx on public.notifications(user_id);
+create index if not exists notifications_read_idx on public.notifications(read);
+create index if not exists notifications_type_idx on public.notifications(type);
+
 -- shared trigger for updated_at columns
 create or replace function public.touch_updated_at()
 returns trigger as $$

@@ -74,6 +74,22 @@ const ngoColumns = [
 
 const ngoSelectColumns = ngoColumns.join(", ");
 
+const notificationColumns = [
+  "id",
+  "user_id",
+  "account_type",
+  "title",
+  "message",
+  "type",
+  "related_id",
+  "related_type",
+  "meta",
+  "read",
+  "created_at",
+];
+
+const notificationSelectColumns = notificationColumns.join(", ");
+
 const defaultUserFields = {
   city: null,
   state: null,
@@ -148,6 +164,20 @@ const mapNgo = (row) => ({
     : defaultUserFields.connected_donors,
   created_at: row.created_at,
   updated_at: row.updated_at,
+});
+
+const mapNotification = (row) => ({
+  id: row.id,
+  user_id: row.user_id,
+  account_type: row.account_type,
+  title: row.title,
+  message: row.message,
+  type: row.type,
+  related_id: row.related_id || null,
+  related_type: row.related_type || null,
+  meta: row.meta ?? {},
+  read: row.read ?? false,
+  created_at: row.created_at,
 });
 
 async function getSingle(queryBuilder) {
@@ -675,6 +705,74 @@ async function deleteRequirement(id) {
   return true;
 }
 
+async function createNotification(notification) {
+  const payload = {
+    ...notification,
+    meta: notification?.meta ?? {},
+  };
+
+  const { data, error } = await supabase
+    .from("notifications")
+    .insert(payload)
+    .select(notificationSelectColumns)
+    .single();
+  if (error) throw error;
+  return mapNotification(data);
+}
+
+async function createNotifications(notifications) {
+  if (!Array.isArray(notifications) || notifications.length === 0) {
+    return [];
+  }
+
+  const payload = notifications.map((item) => ({
+    ...item,
+    meta: item?.meta ?? {},
+  }));
+
+  const { data, error } = await supabase
+    .from("notifications")
+    .insert(payload)
+    .select(notificationSelectColumns);
+  if (error) throw error;
+  return Array.isArray(data) ? data.map(mapNotification) : [];
+}
+
+async function listNotificationsForUser(userId, options = {}) {
+  let query = supabase
+    .from("notifications")
+    .select(notificationSelectColumns)
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (options.unreadOnly) {
+    query = query.eq("read", false);
+  }
+
+  if (options.limit) {
+    query = query.limit(options.limit);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return Array.isArray(data) ? data.map(mapNotification) : [];
+}
+
+async function markNotificationsRead(userId, ids = null) {
+  let query = supabase
+    .from("notifications")
+    .update({ read: true })
+    .eq("user_id", userId);
+
+  if (Array.isArray(ids) && ids.length > 0) {
+    query = query.in("id", ids);
+  }
+
+  const { data, error } = await query.select(notificationSelectColumns);
+  if (error) throw error;
+  return Array.isArray(data) ? data.map(mapNotification) : [];
+}
+
 module.exports = {
   supabase,
   findUserByEmail,
@@ -699,5 +797,9 @@ module.exports = {
   unlinkDonorNgo,
   getConnectedDonorsForNgo,
   getConnectedNgosForDonor,
+  createNotification,
+  createNotifications,
+  listNotificationsForUser,
+  markNotificationsRead,
 };
 

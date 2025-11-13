@@ -178,6 +178,8 @@ const mockRequirements = [
   },
 ];
 
+const mockNotifications = [];
+
 const useMockDb = () => process.env.USE_MOCK_DB === 'true';
 
 const findUserById = (id) => mockUsers.find((user) => user.id === id) || null;
@@ -348,11 +350,64 @@ const getConnectedNgosForDonor = (donorId) => {
     .map(sanitizeUser);
 };
 
+const createNotification = (notification) => {
+  const record = {
+    id: uuidv4(),
+    user_id: notification.user_id,
+    account_type: notification.account_type,
+    title: notification.title,
+    message: notification.message,
+    type: notification.type || 'general',
+    related_id: notification.related_id || null,
+    related_type: notification.related_type || null,
+    meta: notification.meta || {},
+    read: notification.read ?? false,
+    created_at: now(),
+  };
+
+  mockNotifications.unshift(record);
+  return record;
+};
+
+const createNotifications = (notifications) => {
+  if (!Array.isArray(notifications) || notifications.length === 0) {
+    return [];
+  }
+  return notifications.map((notification) => createNotification(notification));
+};
+
+const listNotificationsForUser = (userId, options = {}) => {
+  let list = mockNotifications.filter((notification) => notification.user_id === userId);
+  if (options.unreadOnly) {
+    list = list.filter((notification) => !notification.read);
+  }
+  if (options.limit) {
+    list = list.slice(0, options.limit);
+  }
+  return list;
+};
+
+const markNotificationsRead = (userId, ids = null) => {
+  let updated = [];
+  mockNotifications.forEach((notification) => {
+    if (notification.user_id !== userId) return;
+    if (Array.isArray(ids) && ids.length > 0 && !ids.includes(notification.id)) {
+      return;
+    }
+    if (!notification.read) {
+      notification.read = true;
+      updated.push(notification);
+    }
+  });
+  return updated;
+};
+
 module.exports = {
   useMockDb,
   mockUsers,
   mockDonations,
   mockRequirements,
+  mockNotifications,
   findUserById,
   findUserByEmail,
   createUser,
@@ -367,5 +422,9 @@ module.exports = {
   unlinkDonorNgo,
   getConnectedDonorsForNgo,
   getConnectedNgosForDonor,
+  createNotification,
+  createNotifications,
+  listNotificationsForUser,
+  markNotificationsRead,
 };
 

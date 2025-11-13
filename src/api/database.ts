@@ -1,4 +1,4 @@
-import { Donor, NGO, Requirement } from '../types';
+import { Donor, NGO, Notification, Requirement } from '../types';
 import { getApiBaseUrl } from '../utils/apiBase';
 
 const API_BASE_URL = getApiBaseUrl();
@@ -321,6 +321,54 @@ class ApiService {
     }
 
     return response.json();
+  }
+
+  // Notification operations
+  async getNotifications(options?: { unreadOnly?: boolean; limit?: number }) {
+    const params = new URLSearchParams();
+    if (options?.unreadOnly) {
+      params.append('unreadOnly', 'true');
+    }
+    if (options?.limit && options.limit > 0) {
+      params.append('limit', String(options.limit));
+    }
+
+    const queryString = params.toString();
+    const url = `${API_BASE_URL}/notifications${queryString ? `?${queryString}` : ''}`;
+
+    const response = await fetch(url, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Failed to load notifications');
+    }
+
+    return response.json() as Promise<{
+      notifications: Notification[];
+      unreadCount: number;
+    }>;
+  }
+
+  async markNotificationsRead(ids?: string[]) {
+    const payload = Array.isArray(ids) && ids.length > 0 ? { ids } : {};
+
+    const response = await fetch(`${API_BASE_URL}/notifications/mark-read`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Failed to update notifications');
+    }
+
+    return response.json() as Promise<{
+      updated: Notification[];
+      unreadCount: number;
+    }>;
   }
 
   // Utility methods

@@ -1,13 +1,23 @@
-import { Bell, Heart, LogOut, Menu, Settings, User, X } from 'lucide-react';
-import React, { useState } from 'react';
+import { Bell, Heart, Loader2, LogOut, Menu, Settings, User, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Header: React.FC = () => {
-  const { currentUser, userProfile, logout } = useAuth();
+  const {
+    currentUser,
+    userProfile,
+    logout,
+    notifications,
+    unreadNotifications,
+    notificationsLoading,
+    refreshNotifications,
+    markNotificationsAsRead,
+  } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [areNotificationsOpen, setAreNotificationsOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -17,6 +27,31 @@ const Header: React.FC = () => {
       console.error('Logout failed:', error);
     }
   };
+
+  useEffect(() => {
+    if (!currentUser) {
+      setAreNotificationsOpen(false);
+      setIsUserMenuOpen(false);
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (areNotificationsOpen) {
+      (async () => {
+        const list = await refreshNotifications({ suppressToasts: true });
+        if (!cancelled) {
+          const unreadIds = list.filter((item) => !item.read).map((item) => item.id);
+          if (unreadIds.length > 0) {
+            await markNotificationsAsRead(unreadIds);
+          }
+        }
+      })();
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [areNotificationsOpen, refreshNotifications, markNotificationsAsRead]);
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -48,10 +83,69 @@ const Header: React.FC = () => {
             {currentUser ? (
               <>
                 {/* Notifications */}
-                <button className="relative p-2 text-gray-600 hover:text-primary-600 transition-colors">
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setAreNotificationsOpen((prev) => !prev);
+                      setIsUserMenuOpen(false);
+                    }}
+                    className="relative p-2 text-gray-600 hover:text-primary-600 transition-colors"
+                  >
+                    <Bell className="h-5 w-5" />
+                    {unreadNotifications > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-4 bg-red-500 text-white text-[10px] font-semibold leading-4 rounded-full px-1 text-center">
+                        {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                      </span>
+                    )}
+                  </button>
+
+                  {areNotificationsOpen && (
+                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                        <h3 className="text-sm font-semibold text-gray-700">Notifications</h3>
+                        {notifications.length > 0 && (
+                          <button
+                            className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                            onClick={() => markNotificationsAsRead()}
+                          >
+                            Mark all as read
+                          </button>
+                        )}
+                      </div>
+                      <div className="max-h-80 overflow-y-auto">
+                        {notificationsLoading ? (
+                          <div className="flex items-center justify-center py-6">
+                            <Loader2 className="h-5 w-5 animate-spin text-primary-600" />
+                          </div>
+                        ) : notifications.length === 0 ? (
+                          <div className="px-4 py-6 text-sm text-gray-500 text-center">
+                            You’re all caught up!
+                          </div>
+                        ) : (
+                          notifications.map((notification) => {
+                            const timestamp = notification.created_at
+                              ? new Date(notification.created_at).toLocaleString()
+                              : '';
+                            return (
+                              <div
+                                key={notification.id}
+                                className={`px-4 py-3 border-b border-gray-100 last:border-b-0 ${
+                                  notification.read ? 'bg-white' : 'bg-primary-50/70'
+                                }`}
+                              >
+                                <p className="text-sm font-medium text-gray-900">{notification.title}</p>
+                                <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
+                                {timestamp && (
+                                  <span className="text-xs text-gray-400 mt-2 block">{timestamp}</span>
+                                )}
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* User Menu */}
                 <div className="relative">

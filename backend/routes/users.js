@@ -13,6 +13,9 @@ const {
   getConnectedDonorsForNgo: getMockConnectedDonorsForNgo,
 } = require('../services/mockData');
 const { isMockDb, useSupabase } = require('../utils/dbMode');
+const {
+  notifyCurrentRequirementsUpdated,
+} = require('../services/notificationService');
 
 let supabaseAdapter = null;
 if (useSupabase()) {
@@ -258,11 +261,35 @@ router.put('/:id', authenticateToken, async (req, res) => {
     const updates = req.body;
 
     if (isMockDbMode()) {
+      const existingUser = findUserById(id);
+      if (!existingUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
       if (req.user.id !== id) {
         return res.status(403).json({ error: 'You can only update your own profile' });
       }
 
-      const allowedFields = ['name', 'phone', 'address', 'city', 'state', 'country', 'pincode', 'description', 'website', 'logo_url'];
+      const allowedFields = [
+        'name',
+        'phone',
+        'address',
+        'city',
+        'state',
+        'country',
+        'pincode',
+        'description',
+        'website',
+        'logo_url',
+        'current_requirements',
+        'works_done',
+        'awards_received',
+        'about',
+        'recent_activities',
+        'future_plans',
+        'awards_and_recognition',
+        'gallery',
+      ];
       const sanitizedUpdates = {};
 
       allowedFields.forEach(field => {
@@ -275,9 +302,23 @@ router.put('/:id', authenticateToken, async (req, res) => {
         return res.status(400).json({ error: 'No valid fields to update' });
       }
 
+      const previousRequirements = existingUser.current_requirements ?? null;
+
       const updatedUser = updateMockUser(id, sanitizedUpdates);
       if (!updatedUser) {
         return res.status(404).json({ error: 'User not found' });
+      }
+
+      if (
+        existingUser.user_type === 'ngo' &&
+        Object.prototype.hasOwnProperty.call(sanitizedUpdates, 'current_requirements') &&
+        sanitizedUpdates.current_requirements !== previousRequirements
+      ) {
+        await notifyCurrentRequirementsUpdated({
+          ngoId: id,
+          ngoName: existingUser.name || 'Your connected NGO',
+          currentRequirements: sanitizedUpdates.current_requirements,
+        });
       }
 
       return res.json({
@@ -343,7 +384,28 @@ router.put('/:id', authenticateToken, async (req, res) => {
           return res.status(400).json({ error: 'No valid fields to update' });
         }
 
+        const previousRequirements =
+          existing.type === 'ngo'
+            ? existing.record?.current_requirements ?? null
+            : null;
+        const incomingRequirements =
+          existing.type === 'ngo' && Object.prototype.hasOwnProperty.call(updates, 'current_requirements')
+            ? updates.current_requirements
+            : undefined;
+        const shouldNotifyCurrentRequirements =
+          existing.type === 'ngo' &&
+          incomingRequirements !== undefined &&
+          incomingRequirements !== previousRequirements;
+
         const result = await supabaseAdapter.updateUser(existing.type, id, updatePayload);
+
+        if (shouldNotifyCurrentRequirements) {
+          await notifyCurrentRequirementsUpdated({
+            ngoId: id,
+            ngoName: result.mapped?.name || existing.mapped?.name || 'Your connected NGO',
+            currentRequirements: incomingRequirements,
+          });
+        }
 
         return res.json({
           message: 'Profile updated successfully',

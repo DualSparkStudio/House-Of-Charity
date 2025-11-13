@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { apiService } from '../api/database';
-import { Donor, NGO } from '../types';
+import { Donor, NGO, Notification } from '../types';
+import toast from 'react-hot-toast';
 
 type AuthUser = {
   id: string;
@@ -26,12 +27,17 @@ interface AuthContextType {
   userProfile: Donor | NGO | null;
   loading: boolean;
   connections: Connection[];
+  notifications: Notification[];
+  unreadNotifications: number;
+  notificationsLoading: boolean;
   addConnection: (connection: Connection) => Promise<void>;
   removeConnection: (id: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, userData: Partial<Donor | NGO>) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<Donor | NGO>) => Promise<void>;
+  refreshNotifications: (options?: { silent?: boolean; suppressToasts?: boolean }) => Promise<Notification[]>;
+  markNotificationsAsRead: (ids?: string[]) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -50,6 +56,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
   const [connections, setConnections] = useState<Connection[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const lastNotificationIdsRef = useRef<Set<string>>(new Set());
 
   const loadConnections = (userId: string) => {
     try {
@@ -127,6 +137,103 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  const refreshNotifications = useCallback(
+    async (
+      { silent, suppressToasts }: { silent?: boolean; suppressToasts?: boolean } = {}
+    ): Promise<Notification[]> => {
+      if (!apiService.isAuthenticated()) {
+        setNotifications([]);
+        setUnreadNotifications(0);
+        lastNotificationIdsRef.current = new Set();
+        return [];
+      }
+
+      if (!silent) {
+        setNotificationsLoading(true);
+      }
+
+      try {
+        const response = await apiService.getNotifications();
+        const list = response?.notifications || [];
+        const previousIds = lastNotificationIdsRef.current;
+        const newNotifications = list.filter((notification) => !previousIds.has(notification.id));
+
+        if (!suppressToasts && previousIds.size > 0 && newNotifications.length > 0) {
+          newNotifications.forEach((notification) => {
+            const summary = notification.message
+              ? `${notification.title}: ${notification.message}`
+              : notification.title;
+            toast(summary, {
+              id: `notification-${notification.id}`,
+              icon: '🔔',
+            });
+          });
+        }
+
+        lastNotificationIdsRef.current = new Set(list.map((notification) => notification.id));
+
+        setNotifications(list);
+        setUnreadNotifications(
+          typeof response?.unreadCount === 'number'
+            ? response.unreadCount
+            : list.filter((item) => !item.read).length
+        );
+        return list;
+      } catch (error) {
+        if (!silent) {
+          console.error('Failed to load notifications:', error);
+        }
+        return [];
+      } finally {
+        if (!silent) {
+          setNotificationsLoading(false);
+        }
+      }
+    },
+    []
+  );
+
+  const markNotificationsAsRead = useCallback(
+    async (ids?: string[]) => {
+      if (!apiService.isAuthenticated()) {
+        return;
+      }
+
+      try {
+        const response = await apiService.markNotificationsRead(ids);
+        const updatedIds =
+          Array.isArray(response?.updated) && response.updated.length > 0
+            ? new Set(response.updated.map((notification) => notification.id))
+            : ids && ids.length > 0
+            ? new Set(ids)
+            : new Set(
+                notifications
+                  .filter((notification) => !notification.read)
+                  .map((notification) => notification.id)
+              );
+
+        setNotifications((prev) =>
+          prev.map((notification) =>
+            updatedIds.has(notification.id)
+              ? { ...notification, read: true }
+              : notification
+          )
+        );
+
+        if (typeof response?.unreadCount === 'number') {
+          setUnreadNotifications(response.unreadCount);
+        } else {
+          setUnreadNotifications((prevCount) =>
+            ids && ids.length > 0 ? Math.max(prevCount - ids.length, 0) : 0
+          );
+        }
+      } catch (error) {
+        console.error('Failed to update notifications:', error);
+      }
+    },
+    [notifications]
+  );
+
   useEffect(() => {
     const checkAuth = async () => {
       setLoading(true);
@@ -141,17 +248,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             setConnections([]);
           }
+          await refreshNotifications();
         } catch (error) {
           console.error('Token verification failed:', error);
           apiService.logout();
           setCurrentUser(null);
           setUserProfile(null);
           setConnections([]);
+          setNotifications([]);
+          setUnreadNotifications(0);
+          lastNotificationIdsRef.current = new Set();
         }
       } else {
         setCurrentUser(null);
         setUserProfile(null);
         setConnections([]);
+        setNotifications([]);
+        setUnreadNotifications(0);
+        lastNotificationIdsRef.current = new Set();
       }
       } finally {
       setLoading(false);
@@ -160,7 +274,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     checkAuth();
-  }, []);
+  }, [refreshNotifications]);
+
+  useEffect(() => {
+    let interval: number | undefined;
+
+    if (currentUser) {
+      refreshNotifications({ silent: true });
+      interval = window.setInterval(() => {
+        refreshNotifications({ silent: true });
+      }, 15_000);
+    }
+
+    return () => {
+      if (interval) {
+        window.clearInterval(interval);
+      }
+    };
+  }, [currentUser, refreshNotifications]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -173,6 +304,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setConnections([]);
       }
+      await refreshNotifications();
     } catch (error) {
       throw error;
     } finally {
@@ -191,6 +323,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setConnections([]);
       }
+      await refreshNotifications();
     } catch (error) {
       throw error;
     } finally {
@@ -204,6 +337,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCurrentUser(null);
       setUserProfile(null);
       setConnections([]);
+      setNotifications([]);
+      setUnreadNotifications(0);
+      lastNotificationIdsRef.current = new Set();
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -234,6 +370,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     updateProfile,
+    notifications,
+    unreadNotifications,
+    notificationsLoading,
+    refreshNotifications,
+    markNotificationsAsRead,
   };
 
   if (initializing) {

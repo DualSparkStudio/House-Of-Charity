@@ -79,10 +79,13 @@ export interface Requirement {
 export interface Notification {
   id: string;
   user_id: string;
+  account_type: 'donor' | 'ngo';
   title: string;
   message: string;
   type: 'donation' | 'requirement' | 'connection' | 'general';
   read: boolean;
   created_at: string;
   related_id?: string; // ID of related donation, requirement, etc.
+  related_type?: string;
+  meta?: Record<string, unknown>;
 } 

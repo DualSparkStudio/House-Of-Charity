@@ -7,9 +7,12 @@ const {
   findUserById, 
   createDonation: createMockDonation, 
   mockDonations, 
-  updateDonation: updateMockDonation 
+  updateDonation: updateMockDonation,
 } = require('../services/mockData');
 const { isMockDb, useSupabase } = require('../utils/dbMode');
+const {
+  notifyDonationReceived,
+} = require('../services/notificationService');
 
 let supabaseAdapter = null;
 if (useSupabase()) {
@@ -121,6 +124,16 @@ router.post('/', authenticateToken, async (req, res) => {
         essential_type: normalizedType === 'essentials' ? essential_type || null : null,
       });
 
+      await notifyDonationReceived({
+        ngoId: ngo_id,
+        donationId: donation.id,
+        donorName: donor.name,
+        donationType: normalizedType,
+        amount: normalizedType === 'money' ? Number(amount) : null,
+        currency: currency || 'USD',
+        anonymous: !!anonymous,
+      });
+
       return res.status(201).json({
         message: 'Donation created successfully',
         donation: enrichDonation(donation),
@@ -162,6 +175,19 @@ router.post('/', authenticateToken, async (req, res) => {
         };
 
         const donation = await supabaseAdapter.createDonation(payload);
+
+        await notifyDonationReceived({
+          ngoId: ngo_id,
+          donationId: donation.id,
+          donorName: donation?.donor?.name,
+          donationType: payload.donation_type,
+          amount:
+            payload.donation_type === 'money' && payload.amount != null
+              ? Number(payload.amount)
+              : null,
+          currency: payload.currency || 'INR',
+          anonymous: !!payload.anonymous,
+        });
 
         return res.status(201).json({
           message: 'Donation created successfully',
