@@ -40,6 +40,12 @@ create table if not exists public.ngos (
   pincode text,
   works_done text,
   awards_received text,
+  about text,
+  gallery text,
+  current_requirements text,
+  future_plans text,
+  awards_and_recognition text,
+  recent_activities text,
   description text,
   website text,
   logo_url text,
@@ -49,6 +55,16 @@ create table if not exists public.ngos (
 );
 
 create index if not exists ngos_name_idx on public.ngos using gin (to_tsvector('simple', coalesce(name,'')));
+
+alter table public.ngos
+  add column if not exists works_done text,
+  add column if not exists awards_received text,
+  add column if not exists about text,
+  add column if not exists gallery text,
+  add column if not exists current_requirements text,
+  add column if not exists future_plans text,
+  add column if not exists awards_and_recognition text,
+  add column if not exists recent_activities text;
 
 -- donor <-> NGO many-to-many links
 create table if not exists public.donor_ngo_links (
