@@ -133,6 +133,7 @@ set
   verified = excluded.verified,
   updated_at = now();
 
+-- Example donor records.
 -- Sample requirements linked to the NGOs above.
 insert into public.requirements (
   id,
