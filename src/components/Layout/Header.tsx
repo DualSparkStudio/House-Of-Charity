@@ -66,6 +66,11 @@ const Header: React.FC = () => {
                     </div>
                     <span className="hidden sm:block text-sm font-medium text-gray-700">
                       {userProfile?.name || 'User'}
+                      {userProfile?.user_type && (
+                        <span className="text-xs text-gray-500 ml-1">
+                          ({userProfile.user_type})
+                        </span>
+                      )}
                     </span>
                   </button>
 
