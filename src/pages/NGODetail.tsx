@@ -272,13 +272,13 @@ const NGODetail: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-full mx-auto" style={{paddingLeft: '10%', paddingRight: '10%', paddingTop: '2%', paddingBottom: '2%'}}>
         {/* Back Button */}
-        <Link 
-          to="/ngos" 
+        <button
+          onClick={() => navigate(-1)}
           className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-6"
         >
           <ArrowLeft className="h-5 w-5 mr-2" />
-          Back to NGOs
-        </Link>
+          Back
+        </button>
 
         {/* NGO Header */}
         <div className="card mb-6">
