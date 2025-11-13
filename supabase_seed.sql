@@ -55,32 +55,6 @@ insert into public.ngos (
     now(),
     now()
   ),
-  (
-    gen_random_uuid(),
-    'Green Earth Initiative',
-    'hello@greenearth.org',
-    crypt('green', gen_salt('bf')),
-    '+91-9876543210',
-    'Plot 28, Eco Towers, HSR Layout',
-    'Bengaluru',
-    'Karnataka',
-    'India',
-    '560102',
-    'Planted 50,000 native saplings|Built community composting units|Created urban micro-forests',
-    'UN Climate Action Recognition 2023',
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    'Driving community-led climate action with afforestation and waste management.',
-    'https://www.greenearth.org',
-    'https://assets.example.org/logos/green-earth.png',
-    true,
-    now(),
-    now()
-  ),
   -- Password: green
   (
     gen_random_uuid(),
