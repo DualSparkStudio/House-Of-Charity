@@ -5,7 +5,8 @@ const API_BASE_URL = getApiBaseUrl();
 
 class ApiService {
   private getAuthHeaders() {
-    const token = localStorage.getItem('token');
+    const token =
+      typeof window !== 'undefined' ? sessionStorage.getItem('token') : null;
     return {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` })
@@ -26,7 +27,9 @@ class ApiService {
     }
 
     const data = await response.json();
-    localStorage.setItem('token', data.token);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('token', data.token);
+    }
     return data;
   }
 
@@ -43,7 +46,9 @@ class ApiService {
     }
 
     const data = await response.json();
-    localStorage.setItem('token', data.token);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('token', data.token);
+    }
     return data;
   }
 
@@ -53,7 +58,9 @@ class ApiService {
     });
 
     if (!response.ok) {
-      localStorage.removeItem('token');
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('token');
+      }
       throw new Error('Invalid token');
     }
 
@@ -275,11 +282,15 @@ class ApiService {
 
   // Utility methods
   logout() {
-    localStorage.removeItem('token');
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('token');
+    }
   }
 
   isAuthenticated() {
-    return !!localStorage.getItem('token');
+    return typeof window !== 'undefined'
+      ? !!sessionStorage.getItem('token')
+      : false;
   }
 }
 

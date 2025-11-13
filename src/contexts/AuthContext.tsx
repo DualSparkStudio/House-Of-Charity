@@ -53,7 +53,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loadConnections = (userId: string) => {
     try {
-      const stored = localStorage.getItem(`connections_${userId}`);
+      if (typeof window === 'undefined') {
+        setConnections([]);
+        return;
+      }
+      const stored = sessionStorage.getItem(`connections_${userId}`);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
@@ -68,7 +72,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const persistConnections = (userId: string, list: Connection[]) => {
-    localStorage.setItem(`connections_${userId}`, JSON.stringify(list));
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(`connections_${userId}`, JSON.stringify(list));
+    }
   };
 
   const addConnection = (connection: Connection) => {
