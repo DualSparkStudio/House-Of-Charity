@@ -1,11 +1,11 @@
-import { ArrowLeft, Globe, Heart, Pencil, Star, Users, X } from 'lucide-react';
+import { ArrowLeft, Globe, Heart, Mail, Pencil, Phone, Star, Users, X } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { apiService } from '../api/database';
 import DonationForm from '../components/DonationForm';
 import { useAuth } from '../contexts/AuthContext';
-import { NGO } from '../types';
+import { Donor, NGO } from '../types';
 
 type DonationPreset = {
   type?: 'money' | 'food' | 'essentials';
@@ -46,6 +46,8 @@ const NGODetail: React.FC = () => {
   const [donationPreset, setDonationPreset] = useState<DonationPreset | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [connectedDonors, setConnectedDonors] = useState<Donor[]>([]);
+  const [connectedDonorsLoading, setConnectedDonorsLoading] = useState(false);
 
   const getEditableFromSource = React.useCallback(
     (source: Partial<NGO> | null): EditableFields => ({
@@ -120,6 +122,30 @@ const NGODetail: React.FC = () => {
       );
     }
   }, [isOwner, userProfile]);
+
+  useEffect(() => {
+    const loadConnectedDonors = async () => {
+      if (!isOwner || !id) {
+        setConnectedDonors([]);
+        return;
+      }
+
+      setConnectedDonorsLoading(true);
+      try {
+        const response = await apiService.getConnectedDonors(id);
+        const donors: Donor[] = response?.donors || [];
+        setConnectedDonors(donors);
+      } catch (error: any) {
+        console.error('Failed to load connected donors:', error);
+        toast.error(error?.message || 'Unable to load connected donors.');
+        setConnectedDonors([]);
+      } finally {
+        setConnectedDonorsLoading(false);
+      }
+    };
+
+    loadConnectedDonors();
+  }, [id, isOwner]);
 
   useEffect(() => {
     setEditableValues(getEditableFromSource(ngo));
@@ -261,6 +287,9 @@ const NGODetail: React.FC = () => {
   }
 
   const viewValues = isEditingProfile ? editableValues : getEditableFromSource(ngo);
+  const connectedDonorCount = Array.isArray(ngo.connected_donors)
+    ? ngo.connected_donors.length
+    : connectedDonors.length;
   const galleryItems = parseGalleryItems(viewValues.gallery);
   const workDoneItems = splitLines(viewValues.works_done);
   const requirementItems = splitLines(viewValues.current_requirements);
@@ -325,8 +354,10 @@ const NGODetail: React.FC = () => {
           </div>
           <div className="bg-secondary-50 rounded-lg p-4 text-center">
             <Users className="h-8 w-8 text-secondary-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">25+</div>
-            <div className="text-sm text-gray-600">Active Donors</div>
+            <div className="text-2xl font-bold text-gray-900">
+              {connectedDonorCount}
+            </div>
+            <div className="text-sm text-gray-600">Connected Donors</div>
           </div>
           <div className="bg-success-50 rounded-lg p-4 text-center">
             <Globe className="h-8 w-8 text-success-600 mx-auto mb-2" />
@@ -339,6 +370,62 @@ const NGODetail: React.FC = () => {
             <div className="text-sm text-gray-600">Rating</div>
           </div>
         </div>
+
+        {isOwner && (
+          <div className="card mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Connected Donors</h2>
+                <p className="text-sm text-gray-500">
+                  Donors who have chosen to stay connected with your organisation.
+                </p>
+              </div>
+              <span className="text-sm text-gray-500">{connectedDonorCount} connected</span>
+            </div>
+            {connectedDonorsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+              </div>
+            ) : connectedDonors.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                You have not connected with any donors yet. Encourage donors to connect from the NGOs page.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {connectedDonors.map((donor) => (
+                  <div
+                    key={donor.id}
+                    className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border border-gray-200 rounded-lg p-4"
+                  >
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">{donor.name}</h3>
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mt-2">
+                        {donor.email && (
+                          <span className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-gray-400" />
+                            {donor.email}
+                          </span>
+                        )}
+                        {donor.phone && (
+                          <span className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-gray-400" />
+                            {donor.phone}
+                          </span>
+                        )}
+                        {[donor.city, donor.state, donor.country].filter(Boolean).length > 0 && (
+                          <span className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-gray-400" />
+                            {[donor.city, donor.state, donor.country].filter(Boolean).join(', ')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">

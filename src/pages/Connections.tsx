@@ -1,35 +1,16 @@
-import { Calendar, IndianRupee, Mail, Phone, Users } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
+import { Mail, Phone, Users } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { apiService } from '../api/database';
-import { Donation } from '../types';
+import { Donor } from '../types';
 
 const Connections: React.FC = () => {
   const { userProfile, loading, connections, removeConnection } = useAuth();
   const navigate = useNavigate();
   const [pageLoading, setPageLoading] = useState(true);
-  const [ngoDonorConnections, setNgoDonorConnections] = useState<
-    {
-      id: string;
-      name: string;
-      email?: string;
-      totalDonations: number;
-      monetaryImpact: number;
-      lastDonation?: string;
-    }[]
-  >([]);
-
-  const currencyFormatter = useMemo(
-    () =>
-      new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: 'INR',
-        maximumFractionDigits: 0,
-      }),
-    []
-  );
+  const [ngoDonorConnections, setNgoDonorConnections] = useState<Donor[]>([]);
 
   useEffect(() => {
     const loadConnections = async () => {
@@ -45,51 +26,9 @@ const Connections: React.FC = () => {
 
       setPageLoading(true);
       try {
-        const response = await apiService.getDonationsByNGO(userProfile.id);
-        const donations: Donation[] = response?.donations || [];
-        const donorMap = new Map<string, {
-          id: string;
-          name: string;
-          email?: string;
-          totalDonations: number;
-          monetaryImpact: number;
-          lastDonation?: string;
-        }>();
-
-        donations.forEach((donation) => {
-          if (!donation.donor_id) {
-            return;
-          }
-
-          const existing = donorMap.get(donation.donor_id) || {
-            id: donation.donor_id,
-            name: donation.donor_name || donation.display_name || 'Donor',
-            email: donation.donor_email || undefined,
-            totalDonations: 0,
-            monetaryImpact: 0,
-            lastDonation: donation.created_at,
-          };
-
-          existing.totalDonations += 1;
-          if (donation.donation_type === 'money') {
-            existing.monetaryImpact += Number(donation.amount || 0);
-          }
-          if (!existing.lastDonation || new Date(donation.created_at) > new Date(existing.lastDonation)) {
-            existing.lastDonation = donation.created_at;
-          }
-          if (!existing.email && donation.donor_email) {
-            existing.email = donation.donor_email;
-          }
-
-          donorMap.set(donation.donor_id, existing);
-        });
-
-        setNgoDonorConnections(
-          Array.from(donorMap.values()).sort((a, b) => {
-            if (!a.lastDonation || !b.lastDonation) return 0;
-            return new Date(b.lastDonation).getTime() - new Date(a.lastDonation).getTime();
-          })
-        );
+        const response = await apiService.getConnectedDonors(userProfile.id);
+        const donors: Donor[] = response?.donors || [];
+        setNgoDonorConnections(donors);
       } catch (error: any) {
         console.error('Failed to load donor connections:', error);
         toast.error(error?.message || 'Unable to load donor connections.');
@@ -231,7 +170,7 @@ const Connections: React.FC = () => {
             <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h2 className="text-lg font-semibold text-gray-900 mb-2">No donors yet</h2>
             <p className="text-gray-600">
-              Once donors contribute to your organisation, their details will appear here.
+              Once donors connect with your organisation, their details will appear here.
             </p>
           </div>
         ) : (
@@ -249,24 +188,16 @@ const Connections: React.FC = () => {
                     )}
                   </div>
                   <div className="grid grid-cols-1 gap-2 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-gray-400" />
-                      <span>
-                        {donor.totalDonations} donation{donor.totalDonations !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <IndianRupee className="h-4 w-4 text-gray-400" />
-                      <span>
-                        {currencyFormatter.format(donor.monetaryImpact)} contributed
-                      </span>
-                    </div>
-                    {donor.lastDonation && (
+                    {donor.phone && (
                       <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-gray-400" />
-                        <span>
-                          Last donation on {new Date(donor.lastDonation).toLocaleDateString()}
-                        </span>
+                        <Phone className="h-4 w-4 text-gray-400" />
+                        <span>{donor.phone}</span>
+                      </div>
+                    )}
+                    {donor.city && (
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-gray-400" />
+                        <span>{[donor.city, donor.state, donor.country].filter(Boolean).join(', ')}</span>
                       </div>
                     )}
                   </div>

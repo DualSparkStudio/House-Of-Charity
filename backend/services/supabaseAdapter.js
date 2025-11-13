@@ -416,6 +416,74 @@ async function unlinkDonorNgo(donorId, ngoId) {
   };
 }
 
+async function getConnectedDonorsForNgo(ngoId) {
+  const { data, error } = await supabase
+    .from("ngos")
+    .select("connected_donors")
+    .eq("id", ngoId)
+    .single();
+
+  if (error) throw error;
+  const ids = Array.isArray(data?.connected_donors)
+    ? data.connected_donors.filter((value) => !!value)
+    : [];
+
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const { data: donors, error: donorsError } = await supabase
+    .from("donors")
+    .select(donorSelectColumns)
+    .in("id", ids);
+
+  if (donorsError) throw donorsError;
+
+  const orderMap = new Map(ids.map((value, index) => [value, index]));
+
+  return donors
+    .map(mapDonor)
+    .sort(
+      (a, b) =>
+        (orderMap.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+        (orderMap.get(b.id) ?? Number.MAX_SAFE_INTEGER)
+    );
+}
+
+async function getConnectedNgosForDonor(donorId) {
+  const { data, error } = await supabase
+    .from("donors")
+    .select("connected_ngos")
+    .eq("id", donorId)
+    .single();
+
+  if (error) throw error;
+  const ids = Array.isArray(data?.connected_ngos)
+    ? data.connected_ngos.filter((value) => !!value)
+    : [];
+
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const { data: ngos, error: ngosError } = await supabase
+    .from("ngos")
+    .select(ngoSelectColumns)
+    .in("id", ids);
+
+  if (ngosError) throw ngosError;
+
+  const orderMap = new Map(ids.map((value, index) => [value, index]));
+
+  return ngos
+    .map(mapNgo)
+    .sort(
+      (a, b) =>
+        (orderMap.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+        (orderMap.get(b.id) ?? Number.MAX_SAFE_INTEGER)
+    );
+}
+
 async function createDonation(payload) {
   const { data, error } = await supabase
     .from("donations")
@@ -629,5 +697,7 @@ module.exports = {
   mapNgo,
   linkDonorNgo,
   unlinkDonorNgo,
+  getConnectedDonorsForNgo,
+  getConnectedNgosForDonor,
 };
 

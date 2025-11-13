@@ -10,6 +10,7 @@ const {
   mockRequirements,
   linkDonorNgo: linkMockDonorNgo,
   unlinkDonorNgo: unlinkMockDonorNgo,
+  getConnectedDonorsForNgo: getMockConnectedDonorsForNgo,
 } = require('../services/mockData');
 const { isMockDb, useSupabase } = require('../utils/dbMode');
 
@@ -146,6 +147,53 @@ router.delete('/connections', authenticateToken, async (req, res) => {
     return res.status(501).json({ error: 'Connection management not available for this database mode' });
   } catch (error) {
     console.error('Connection deletion error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/:id/connections/donors', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (req.user.id !== id) {
+      return res.status(403).json({ error: 'You can only view your own connections' });
+    }
+
+    if (isMockDbMode()) {
+      const user = findUserById(id);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      if (user.user_type !== 'ngo') {
+        return res.status(403).json({ error: 'Only NGOs have connected donors' });
+      }
+
+      const donors = getMockConnectedDonorsForNgo(id);
+      return res.json({ donors });
+    }
+
+    if (useSupabase()) {
+      try {
+        const result = await supabaseAdapter.findUserById(id);
+        if (!result) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+        if (result.type !== 'ngo') {
+          return res.status(403).json({ error: 'Only NGOs have connected donors' });
+        }
+
+        const donors = await supabaseAdapter.getConnectedDonorsForNgo(id);
+        return res.json({ donors });
+      } catch (error) {
+        console.error('Supabase fetch connected donors error:', error);
+        const message = error?.message || 'Unable to load connected donors';
+        return res.status(500).json({ error: message });
+      }
+    }
+
+    return res.status(501).json({ error: 'Connection lookup not available for this database mode' });
+  } catch (error) {
+    console.error('Fetch connected donors error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -322,6 +322,32 @@ const unlinkDonorNgo = (donorId, ngoId) => {
   };
 };
 
+const getConnectedDonorsForNgo = (ngoId) => {
+  const ngo = findUserById(ngoId);
+  if (!ngo || ngo.user_type !== 'ngo') {
+    return [];
+  }
+
+  const ids = Array.isArray(ngo.connected_donors) ? ngo.connected_donors : [];
+  return ids
+    .map((id) => findUserById(id))
+    .filter((donor) => donor && donor.user_type === 'donor')
+    .map(sanitizeUser);
+};
+
+const getConnectedNgosForDonor = (donorId) => {
+  const donor = findUserById(donorId);
+  if (!donor || donor.user_type !== 'donor') {
+    return [];
+  }
+
+  const ids = Array.isArray(donor.connected_ngos) ? donor.connected_ngos : [];
+  return ids
+    .map((id) => findUserById(id))
+    .filter((ngo) => ngo && ngo.user_type === 'ngo')
+    .map(sanitizeUser);
+};
+
 module.exports = {
   useMockDb,
   mockUsers,
@@ -339,5 +365,7 @@ module.exports = {
   deleteRequirement,
   linkDonorNgo,
   unlinkDonorNgo,
+  getConnectedDonorsForNgo,
+  getConnectedNgosForDonor,
 };
 

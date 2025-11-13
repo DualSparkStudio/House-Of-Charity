@@ -117,6 +117,19 @@ class ApiService {
     return response.json();
   }
 
+  async getConnectedDonors(ngoId: string) {
+    const response = await fetch(`${API_BASE_URL}/users/${ngoId}/connections/donors`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Failed to fetch connected donors');
+    }
+
+    return response.json();
+  }
+
   async connectDonorToNgo(donorId: string, ngoId: string) {
     const response = await fetch(`${API_BASE_URL}/users/connections`, {
       method: 'POST',
