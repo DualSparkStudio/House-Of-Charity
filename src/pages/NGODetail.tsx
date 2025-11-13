@@ -17,6 +17,25 @@ type DonationPreset = {
   essentialType?: string;
 };
 
+type EditableFields = {
+  name: string;
+  description: string;
+  about: string;
+  works_done: string;
+  current_requirements: string;
+  future_plans: string;
+  awards_and_recognition: string;
+  recent_activities: string;
+  gallery: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  pincode: string;
+  website: string;
+};
+
 const NGODetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -28,26 +47,8 @@ const NGODetail: React.FC = () => {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
-  type EditableFields = {
-    name: string;
-    description: string;
-    about: string;
-    works_done: string;
-    current_requirements: string;
-    future_plans: string;
-    awards_and_recognition: string;
-    recent_activities: string;
-    gallery: string;
-    phone: string;
-    address: string;
-    city: string;
-    state: string;
-    country: string;
-    pincode: string;
-    website: string;
-  };
-
-  const getEditableFromSource = (source: Partial<NGO> | null): EditableFields => ({
+  const getEditableFromSource = React.useCallback(
+    (source: Partial<NGO> | null): EditableFields => ({
     name: source?.name ?? '',
     description: source?.description ?? '',
     about: source?.about ?? '',
@@ -64,25 +65,19 @@ const NGODetail: React.FC = () => {
     country: source?.country ?? '',
     pincode: source?.pincode ?? '',
     website: source?.website ?? '',
-  });
+    }),
+    []
+  );
 
-  const [editableValues, setEditableValues] = useState<EditableFields>(getEditableFromSource(null));
+  const [editableValues, setEditableValues] = useState<EditableFields>(() =>
+    getEditableFromSource(null)
+  );
 
   const isDonor = userProfile?.user_type === 'donor';
   const isOwner = userProfile?.user_type === 'ngo' && userProfile?.id === id;
   const isConnected = useMemo(
     () => connections.some((connection) => connection.id === id),
     [connections, id]
-  );
-
-  const currencyFormatter = useMemo(
-    () =>
-      new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: 'INR',
-        maximumFractionDigits: 0,
-      }),
-    []
   );
 
   const handleDonateClick = (preset?: DonationPreset) => {
@@ -128,7 +123,7 @@ const NGODetail: React.FC = () => {
 
   useEffect(() => {
     setEditableValues(getEditableFromSource(ngo));
-  }, [ngo]);
+  }, [getEditableFromSource, ngo]);
 
   const handleFieldChange = (
     field: keyof EditableFields,
