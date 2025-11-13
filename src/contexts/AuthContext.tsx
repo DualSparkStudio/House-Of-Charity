@@ -26,8 +26,8 @@ interface AuthContextType {
   userProfile: Donor | NGO | null;
   loading: boolean;
   connections: Connection[];
-  addConnection: (connection: Connection) => void;
-  removeConnection: (id: string) => void;
+  addConnection: (connection: Connection) => Promise<void>;
+  removeConnection: (id: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, userData: Partial<Donor | NGO>) => Promise<void>;
   logout: () => Promise<void>;
@@ -77,8 +77,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const addConnection = (connection: Connection) => {
-    if (!userProfile || userProfile.user_type !== 'donor') return;
+  const addConnection = async (connection: Connection) => {
+    if (!userProfile || userProfile.user_type !== 'donor') {
+      throw new Error('Only donors can create connections');
+    }
+
+    await apiService.connectDonorToNgo(userProfile.id, connection.id);
 
     setConnections((prev) => {
       if (prev.some((item) => item.id === connection.id)) {
@@ -88,15 +92,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       persistConnections(userProfile.id, updated);
       return updated;
     });
+
+    setUserProfile((prev) => {
+      if (!prev || prev.id !== userProfile.id) return prev;
+      const existing = Array.isArray(prev.connected_ngos) ? prev.connected_ngos : [];
+      if (existing.includes(connection.id)) return prev;
+      return {
+        ...prev,
+        connected_ngos: [...existing, connection.id],
+      } as Donor | NGO;
+    });
   };
 
-  const removeConnection = (id: string) => {
-    if (!userProfile || userProfile.user_type !== 'donor') return;
+  const removeConnection = async (id: string) => {
+    if (!userProfile || userProfile.user_type !== 'donor') {
+      throw new Error('Only donors can remove connections');
+    }
+
+    await apiService.disconnectDonorFromNgo(userProfile.id, id);
 
     setConnections((prev) => {
       const updated = prev.filter((item) => item.id !== id);
       persistConnections(userProfile.id, updated);
       return updated;
+    });
+
+    setUserProfile((prev) => {
+      if (!prev || prev.id !== userProfile.id) return prev;
+      const existing = Array.isArray(prev.connected_ngos) ? prev.connected_ngos : [];
+      return {
+        ...prev,
+        connected_ngos: existing.filter((ngoId) => ngoId !== id),
+      } as Donor | NGO;
     });
   };
 

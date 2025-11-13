@@ -117,6 +117,36 @@ class ApiService {
     return response.json();
   }
 
+  async connectDonorToNgo(donorId: string, ngoId: string) {
+    const response = await fetch(`${API_BASE_URL}/users/connections`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ donorId, ngoId }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Failed to create connection');
+    }
+
+    return response.json();
+  }
+
+  async disconnectDonorFromNgo(donorId: string, ngoId: string) {
+    const response = await fetch(`${API_BASE_URL}/users/connections`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ donorId, ngoId }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Failed to remove connection');
+    }
+
+    return response.json();
+  }
+
   // Donation operations
   async createDonation(donation: {
     ngo_id: string;

@@ -21,6 +21,7 @@ const mockUsers = [
     website: 'https://savethechildren.org',
     logo_url: null,
     verified: true,
+  connected_donors: [],
     created_at: now(),
     updated_at: now(),
   },
@@ -40,6 +41,7 @@ const mockUsers = [
     website: 'https://foodbank.org',
     logo_url: null,
     verified: true,
+  connected_donors: [],
     created_at: now(),
     updated_at: now(),
   },
@@ -59,6 +61,7 @@ const mockUsers = [
     website: null,
     logo_url: null,
     verified: true,
+  connected_ngos: [],
     created_at: now(),
     updated_at: now(),
   },
@@ -78,6 +81,7 @@ const mockUsers = [
     website: null,
     logo_url: null,
     verified: true,
+  connected_ngos: [],
     created_at: now(),
     updated_at: now(),
   },
@@ -186,6 +190,8 @@ const createUser = (userData) => {
     updated_at: now(),
     verified: false,
     logo_url: null,
+    connected_ngos: [],
+    connected_donors: [],
     ...userData,
   };
 
@@ -258,6 +264,64 @@ const deleteRequirement = (id) => {
   return true;
 };
 
+const sanitizeUser = (user) => {
+  if (!user) return null;
+  const { password, ...rest } = user;
+  return rest;
+};
+
+const linkDonorNgo = (donorId, ngoId) => {
+  const donor = findUserById(donorId);
+  const ngo = findUserById(ngoId);
+
+  if (!donor || donor.user_type !== 'donor') {
+    throw new Error('Donor not found');
+  }
+  if (!ngo || ngo.user_type !== 'ngo') {
+    throw new Error('NGO not found');
+  }
+
+  donor.connected_ngos = Array.from(
+    new Set([...(donor.connected_ngos || []), ngoId])
+  );
+  ngo.connected_donors = Array.from(
+    new Set([...(ngo.connected_donors || []), donorId])
+  );
+  donor.updated_at = now();
+  ngo.updated_at = now();
+
+  return {
+    donor: sanitizeUser(donor),
+    ngo: sanitizeUser(ngo),
+  };
+};
+
+const unlinkDonorNgo = (donorId, ngoId) => {
+  const donor = findUserById(donorId);
+  const ngo = findUserById(ngoId);
+
+  if (!donor || donor.user_type !== 'donor') {
+    throw new Error('Donor not found');
+  }
+  if (!ngo || ngo.user_type !== 'ngo') {
+    throw new Error('NGO not found');
+  }
+
+  donor.connected_ngos = (donor.connected_ngos || []).filter(
+    (id) => id !== ngoId
+  );
+  ngo.connected_donors = (ngo.connected_donors || []).filter(
+    (id) => id !== donorId
+  );
+  donor.updated_at = now();
+  ngo.updated_at = now();
+
+  return {
+    donor: sanitizeUser(donor),
+    ngo: sanitizeUser(ngo),
+  };
+};
+
 module.exports = {
   useMockDb,
   mockUsers,
@@ -273,5 +337,7 @@ module.exports = {
   addRequirement,
   updateRequirement,
   deleteRequirement,
+  linkDonorNgo,
+  unlinkDonorNgo,
 };
 

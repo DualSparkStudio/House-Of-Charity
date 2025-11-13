@@ -37,6 +37,7 @@ const donorColumns = [
   "website",
   "logo_url",
   "verified",
+  "connected_ngos",
   "created_at",
   "updated_at",
 ];
@@ -66,6 +67,7 @@ const ngoColumns = [
   "website",
   "logo_url",
   "verified",
+  "connected_donors",
   "created_at",
   "updated_at",
 ];
@@ -89,6 +91,8 @@ const defaultUserFields = {
   awards_and_recognition: null,
   recent_activities: null,
   verified: false,
+  connected_ngos: [],
+  connected_donors: [],
 };
 
 const mapDonor = (row) => ({
@@ -106,6 +110,9 @@ const mapDonor = (row) => ({
   website: row.website ?? defaultUserFields.website,
   logo_url: row.logo_url ?? defaultUserFields.logo_url,
   verified: row.verified ?? defaultUserFields.verified,
+  connected_ngos: Array.isArray(row.connected_ngos)
+    ? row.connected_ngos
+    : defaultUserFields.connected_ngos,
   created_at: row.created_at,
   updated_at: row.updated_at,
 });
@@ -136,6 +143,9 @@ const mapNgo = (row) => ({
   recent_activities:
     row.recent_activities ?? defaultUserFields.recent_activities,
   verified: row.verified ?? defaultUserFields.verified,
+  connected_donors: Array.isArray(row.connected_donors)
+    ? row.connected_donors
+    : defaultUserFields.connected_donors,
   created_at: row.created_at,
   updated_at: row.updated_at,
 });
@@ -283,6 +293,126 @@ async function getNgoStats(ngoId) {
     fulfilled_requirements: requirements.filter(
       (req) => req.status === "fulfilled"
     ).length,
+  };
+}
+
+async function linkDonorNgo(donorId, ngoId) {
+  const [{ data: donorRow, error: donorError }, { data: ngoRow, error: ngoError }] =
+    await Promise.all([
+      supabase
+        .from("donors")
+        .select("connected_ngos")
+        .eq("id", donorId)
+        .single(),
+      supabase
+        .from("ngos")
+        .select("connected_donors")
+        .eq("id", ngoId)
+        .single(),
+    ]);
+
+  if (donorError) throw donorError;
+  if (!donorRow) throw new Error("Donor not found");
+  if (ngoError) throw ngoError;
+  if (!ngoRow) throw new Error("NGO not found");
+
+  const donorConnections = Array.isArray(donorRow.connected_ngos)
+    ? donorRow.connected_ngos
+    : [];
+  const ngoConnections = Array.isArray(ngoRow.connected_donors)
+    ? ngoRow.connected_donors
+    : [];
+
+  if (!donorConnections.includes(ngoId)) {
+    const { error: updateDonorError } = await supabase
+      .from("donors")
+      .update({ connected_ngos: [...donorConnections, ngoId] })
+      .eq("id", donorId);
+    if (updateDonorError) throw updateDonorError;
+  }
+
+  if (!ngoConnections.includes(donorId)) {
+    const { error: updateNgoError } = await supabase
+      .from("ngos")
+      .update({ connected_donors: [...ngoConnections, donorId] })
+      .eq("id", ngoId);
+    if (updateNgoError) throw updateNgoError;
+  }
+
+  const { error: linkError } = await supabase
+    .from("donor_ngo_links")
+    .upsert(
+      {
+        donor_id: donorId,
+        ngo_id: ngoId,
+      },
+      { onConflict: "donor_id,ngo_id" }
+    );
+  if (linkError) throw linkError;
+
+  const donor = await findUserById(donorId);
+  const ngo = await findUserById(ngoId);
+
+  return {
+    donor: donor?.mapped,
+    ngo: ngo?.mapped,
+  };
+}
+
+async function unlinkDonorNgo(donorId, ngoId) {
+  const [{ data: donorRow, error: donorError }, { data: ngoRow, error: ngoError }] =
+    await Promise.all([
+      supabase
+        .from("donors")
+        .select("connected_ngos")
+        .eq("id", donorId)
+        .single(),
+      supabase
+        .from("ngos")
+        .select("connected_donors")
+        .eq("id", ngoId)
+        .single(),
+    ]);
+
+  if (donorError) throw donorError;
+  if (!donorRow) throw new Error("Donor not found");
+  if (ngoError) throw ngoError;
+  if (!ngoRow) throw new Error("NGO not found");
+
+  const donorConnections = Array.isArray(donorRow.connected_ngos)
+    ? donorRow.connected_ngos.filter((id) => id !== ngoId)
+    : [];
+  const ngoConnections = Array.isArray(ngoRow.connected_donors)
+    ? ngoRow.connected_donors.filter((id) => id !== donorId)
+    : [];
+
+  const [{ error: updateDonorError }, { error: updateNgoError }, { error: unlinkError }] =
+    await Promise.all([
+      supabase
+        .from("donors")
+        .update({ connected_ngos: donorConnections })
+        .eq("id", donorId),
+      supabase
+        .from("ngos")
+        .update({ connected_donors: ngoConnections })
+        .eq("id", ngoId),
+      supabase
+        .from("donor_ngo_links")
+        .delete()
+        .eq("donor_id", donorId)
+        .eq("ngo_id", ngoId),
+    ]);
+
+  if (updateDonorError) throw updateDonorError;
+  if (updateNgoError) throw updateNgoError;
+  if (unlinkError) throw unlinkError;
+
+  const donor = await findUserById(donorId);
+  const ngo = await findUserById(ngoId);
+
+  return {
+    donor: donor?.mapped,
+    ngo: ngo?.mapped,
   };
 }
 
@@ -497,5 +627,7 @@ module.exports = {
   deleteRequirement,
   mapDonor,
   mapNgo,
+  linkDonorNgo,
+  unlinkDonorNgo,
 };
 

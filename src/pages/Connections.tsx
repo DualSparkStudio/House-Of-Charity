@@ -187,9 +187,14 @@ const Connections: React.FC = () => {
                       View Details
                     </button>
                     <button
-                      onClick={() => {
-                        removeConnection(connection.id);
-                        toast.success(`Removed ${connection.name} from your connections.`);
+                      onClick={async () => {
+                        try {
+                          await removeConnection(connection.id);
+                          toast.success(`Removed ${connection.name} from your connections.`);
+                        } catch (error: any) {
+                          console.error('Failed to remove connection:', error);
+                          toast.error(error?.message || 'Unable to remove connection.');
+                        }
                       }}
                       className="btn-primary flex-1"
                     >

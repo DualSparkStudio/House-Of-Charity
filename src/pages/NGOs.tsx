@@ -183,22 +183,26 @@ const NGOs: React.FC = () => {
                   <button
                     className="flex-1 btn-primary py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={connectedIds.has(ngo.id)}
-                    onClick={() => {
+                    onClick={async () => {
                       if (!userProfile || userProfile.user_type !== 'donor') {
                         toast.error('Please login as a donor to connect with NGOs.');
                         navigate('/login');
                         return;
                       }
 
-                      addConnection({
-                        id: ngo.id,
-                        name: ngo.name || 'Unknown NGO',
-                        email: ngo.email,
-                        phone: ngo.phone,
-                        description: ngo.description,
-                      });
-
-                      toast.success(`Connected with ${ngo.name}`);
+                      try {
+                        await addConnection({
+                          id: ngo.id,
+                          name: ngo.name || 'Unknown NGO',
+                          email: ngo.email,
+                          phone: ngo.phone,
+                          description: ngo.description,
+                        });
+                        toast.success(`Connected with ${ngo.name}`);
+                      } catch (error: any) {
+                        console.error('Failed to connect:', error);
+                        toast.error(error?.message || 'Unable to connect with NGO.');
+                      }
                     }}
                   >
                     {connectedIds.has(ngo.id) ? 'Connected' : 'Connect'}

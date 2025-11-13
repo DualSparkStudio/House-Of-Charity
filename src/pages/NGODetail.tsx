@@ -391,9 +391,14 @@ const NGODetail: React.FC = () => {
                 isConnected ? (
                   <button
                     className="btn-outline flex-1 border-red-200 text-red-600 hover:text-red-700 hover:border-red-300"
-                    onClick={() => {
-                      removeConnection(ngo.id);
-                      toast.success(`Removed ${ngo.name} from your connections.`);
+                    onClick={async () => {
+                      try {
+                        await removeConnection(ngo.id);
+                        toast.success(`Removed ${ngo.name} from your connections.`);
+                      } catch (error: any) {
+                        console.error('Failed to remove connection:', error);
+                        toast.error(error?.message || 'Unable to remove connection.');
+                      }
                     }}
                   >
                     <Users className="h-5 w-5 mr-2" />
@@ -402,16 +407,21 @@ const NGODetail: React.FC = () => {
                 ) : (
                   <button
                     className="btn-outline flex-1"
-                    onClick={() => {
+                    onClick={async () => {
                       if (!ngo) return;
-                      addConnection({
-                        id: ngo.id,
-                        name: ngo.name || 'Unknown NGO',
-                        email: ngo.email,
-                        phone: ngo.phone,
-                        description: ngo.description,
-                      });
-                      toast.success(`Connected with ${ngo.name}`);
+                      try {
+                        await addConnection({
+                          id: ngo.id,
+                          name: ngo.name || 'Unknown NGO',
+                          email: ngo.email,
+                          phone: ngo.phone,
+                          description: ngo.description,
+                        });
+                        toast.success(`Connected with ${ngo.name}`);
+                      } catch (error: any) {
+                        console.error('Failed to connect:', error);
+                        toast.error(error?.message || 'Unable to connect with NGO.');
+                      }
                     }}
                   >
                     <Users className="h-5 w-5 mr-2" />

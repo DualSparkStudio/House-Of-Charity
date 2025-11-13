@@ -21,6 +21,8 @@ export interface User {
   awards_and_recognition?: string | null;
   recent_activities?: string | null;
   verified?: boolean | null;
+  connected_ngos?: string[] | null;
+  connected_donors?: string[] | null;
   created_at: string;
   updated_at: string;
 }

@@ -1,13 +1,15 @@
 const express = require('express');
 const db = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
-const { 
-  useMockDb, 
-  getNGOs, 
-  findUserById, 
-  updateUser: updateMockUser, 
-  mockDonations, 
-  mockRequirements 
+const {
+  useMockDb,
+  getNGOs,
+  findUserById,
+  updateUser: updateMockUser,
+  mockDonations,
+  mockRequirements,
+  linkDonorNgo: linkMockDonorNgo,
+  unlinkDonorNgo: unlinkMockDonorNgo,
 } = require('../services/mockData');
 const { isMockDb, useSupabase } = require('../utils/dbMode');
 
@@ -47,6 +49,103 @@ router.get('/ngos', async (req, res) => {
     res.json({ ngos });
   } catch (error) {
     console.error('Error fetching NGOs:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Manage donor <-> NGO connections
+router.post('/connections', authenticateToken, async (req, res) => {
+  try {
+    const { donorId, ngoId } = req.body || {};
+
+    if (!donorId || !ngoId) {
+      return res.status(400).json({ error: 'donorId and ngoId are required' });
+    }
+
+    if (req.user.id !== donorId) {
+      return res.status(403).json({ error: 'You can only manage your own connections' });
+    }
+
+    if (isMockDbMode()) {
+      try {
+        const result = linkMockDonorNgo(donorId, ngoId);
+        return res.json({
+          message: 'Connection created successfully',
+          donor: result.donor,
+          ngo: result.ngo,
+        });
+      } catch (error) {
+        console.error('Mock connection error:', error);
+        return res.status(400).json({ error: error.message || 'Unable to create connection' });
+      }
+    }
+
+    if (useSupabase()) {
+      try {
+        const result = await supabaseAdapter.linkDonorNgo(donorId, ngoId);
+        return res.json({
+          message: 'Connection created successfully',
+          donor: result.donor,
+          ngo: result.ngo,
+        });
+      } catch (error) {
+        console.error('Supabase connection error:', error);
+        const message = error?.message || 'Unable to create connection';
+        return res.status(500).json({ error: message });
+      }
+    }
+
+    return res.status(501).json({ error: 'Connection management not available for this database mode' });
+  } catch (error) {
+    console.error('Connection creation error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.delete('/connections', authenticateToken, async (req, res) => {
+  try {
+    const { donorId, ngoId } = req.body || {};
+
+    if (!donorId || !ngoId) {
+      return res.status(400).json({ error: 'donorId and ngoId are required' });
+    }
+
+    if (req.user.id !== donorId) {
+      return res.status(403).json({ error: 'You can only manage your own connections' });
+    }
+
+    if (isMockDbMode()) {
+      try {
+        const result = unlinkMockDonorNgo(donorId, ngoId);
+        return res.json({
+          message: 'Connection removed successfully',
+          donor: result.donor,
+          ngo: result.ngo,
+        });
+      } catch (error) {
+        console.error('Mock disconnection error:', error);
+        return res.status(400).json({ error: error.message || 'Unable to remove connection' });
+      }
+    }
+
+    if (useSupabase()) {
+      try {
+        const result = await supabaseAdapter.unlinkDonorNgo(donorId, ngoId);
+        return res.json({
+          message: 'Connection removed successfully',
+          donor: result.donor,
+          ngo: result.ngo,
+        });
+      } catch (error) {
+        console.error('Supabase disconnection error:', error);
+        const message = error?.message || 'Unable to remove connection';
+        return res.status(500).json({ error: message });
+      }
+    }
+
+    return res.status(501).json({ error: 'Connection management not available for this database mode' });
+  } catch (error) {
+    console.error('Connection deletion error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

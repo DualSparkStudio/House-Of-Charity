@@ -20,6 +20,7 @@ create table if not exists public.donors (
   website text,
   logo_url text,
   verified boolean not null default false,
+  connected_ngos uuid[] not null default '{}'::uuid[],
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -50,6 +51,7 @@ create table if not exists public.ngos (
   website text,
   logo_url text,
   verified boolean not null default false,
+  connected_donors uuid[] not null default '{}'::uuid[],
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -64,7 +66,11 @@ alter table public.ngos
   add column if not exists current_requirements text,
   add column if not exists future_plans text,
   add column if not exists awards_and_recognition text,
-  add column if not exists recent_activities text;
+  add column if not exists recent_activities text,
+  add column if not exists connected_donors uuid[] default '{}'::uuid[];
+
+alter table public.donors
+  add column if not exists connected_ngos uuid[] default '{}'::uuid[];
 
 -- donor <-> NGO many-to-many links
 create table if not exists public.donor_ngo_links (
