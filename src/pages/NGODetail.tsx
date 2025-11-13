@@ -1,4 +1,4 @@
-import { ArrowLeft, Heart, Pencil, Star, Users, X } from 'lucide-react';
+import { ArrowLeft, Globe, Heart, Pencil, Star, Users, X } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -763,6 +763,8 @@ const NGODetail: React.FC = () => {
             >
               Share
             </button>
+          </div>
+        </div>
 
         {/* Donation Modal */}
         {showDonationModal && (
