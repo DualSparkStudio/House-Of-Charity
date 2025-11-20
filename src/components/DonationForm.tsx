@@ -50,6 +50,8 @@ const DonationForm: React.FC<DonationFormProps> = ({
       'Baby Clothes',
       'Formal Wear',
       'Casual Wear',
+      'Shirt',
+      'Pant',
     ],
     furniture: [
       'Chairs',
