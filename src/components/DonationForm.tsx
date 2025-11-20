@@ -22,6 +22,7 @@ interface DonationFormData {
   unit?: string;
   deliveryDate?: string;
   essentialType?: string;
+  essentialSubType?: string;
 }
 
 const DonationForm: React.FC<DonationFormProps> = ({
@@ -38,11 +39,74 @@ const DonationForm: React.FC<DonationFormProps> = ({
   const { userProfile } = useAuth();
   const navigate = useNavigate();
 
+  // Mapping of essential types to their sub-options
+  const essentialSubOptions: Record<string, string[]> = {
+    clothes: [
+      'Winter Clothes',
+      'Summer Clothes',
+      'Children\'s Clothes',
+      'Men\'s Clothes',
+      'Women\'s Clothes',
+      'Baby Clothes',
+      'Formal Wear',
+      'Casual Wear',
+    ],
+    furniture: [
+      'Chairs',
+      'Tables',
+      'Beds',
+      'Sofas',
+      'Cabinets',
+      'Desks',
+      'Wardrobes',
+      'Shelving Units',
+    ],
+    blankets: [
+      'Blankets',
+      'Bed Sheets',
+      'Pillows',
+      'Mattresses',
+      'Quilts',
+      'Comforters',
+      'Sleeping Bags',
+    ],
+    shoes: [
+      'Men\'s Shoes',
+      'Women\'s Shoes',
+      'Children\'s Shoes',
+      'Sports Shoes',
+      'Formal Shoes',
+      'Casual Shoes',
+      'Boots',
+      'Sandals',
+    ],
+    kitchen: [
+      'Cookware',
+      'Dinnerware',
+      'Cutlery',
+      'Kitchen Utensils',
+      'Storage Containers',
+      'Appliances',
+      'Glassware',
+    ],
+    toiletries: [
+      'Soap & Shampoo',
+      'Toothbrushes & Toothpaste',
+      'Towels',
+      'Sanitary Products',
+      'Hair Care Products',
+      'Personal Care Items',
+    ],
+    other: [],
+  };
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
+    setValue,
   } = useForm<DonationFormData>({
     defaultValues: {
       type: initialData?.type || 'money',
@@ -52,8 +116,12 @@ const DonationForm: React.FC<DonationFormProps> = ({
       unit: initialData?.unit,
       deliveryDate: initialData?.deliveryDate,
       essentialType: initialData?.essentialType,
+      essentialSubType: initialData?.essentialSubType,
     },
   });
+
+  const selectedEssentialType = watch('essentialType');
+  const availableSubOptions = selectedEssentialType ? essentialSubOptions[selectedEssentialType] || [] : [];
 
   useEffect(() => {
     setDonationType(initialData?.type || 'money');
@@ -65,6 +133,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
       unit: initialData?.unit,
       deliveryDate: initialData?.deliveryDate,
       essentialType: initialData?.essentialType,
+      essentialSubType: initialData?.essentialSubType,
     });
   }, [initialData, reset]);
 
@@ -82,13 +151,20 @@ const DonationForm: React.FC<DonationFormProps> = ({
 
     setIsLoading(true);
     try {
+      // Combine essential type and sub-type if available
+      const essentialTypeValue = donationType === 'essentials' 
+        ? (data.essentialSubType 
+            ? `${data.essentialType}: ${data.essentialSubType}` 
+            : data.essentialType)
+        : undefined;
+
       await apiService.createDonation({
         ngo_id: ngoId,
         donation_type: donationType,
         amount: donationType === 'money' ? Number(data.amount) : undefined,
         quantity: donationType !== 'money' ? Number(data.quantity) : undefined,
         unit: donationType !== 'money' ? data.unit : undefined,
-        essential_type: donationType === 'essentials' ? data.essentialType : undefined,
+        essential_type: essentialTypeValue,
         delivery_date: donationType !== 'money' ? data.deliveryDate : undefined,
         message: data.description,
         currency: 'USD',
@@ -148,26 +224,60 @@ const DonationForm: React.FC<DonationFormProps> = ({
 
         {/* Essential Type Selection (for daily essentials) */}
         {donationType === 'essentials' && (
-          <div>
-            <label htmlFor="essentialType" className="form-label">
-              Type of Essential Item
-            </label>
-            <select
-              id="essentialType"
-              className="input-field"
-              {...register('essentialType', { required: 'Please select essential type' })}
-            >
-              <option value="">Select type</option>
-              <option value="clothes">Clothes</option>
-              <option value="furniture">Furniture</option>
-              <option value="blankets">Blankets & Bedding</option>
-              <option value="shoes">Shoes</option>
-              <option value="kitchen">Kitchen Items</option>
-              <option value="toiletries">Toiletries</option>
-              <option value="other">Other</option>
-            </select>
-            {errors.essentialType && (
-              <p className="mt-1 text-sm text-red-600">{errors.essentialType.message}</p>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="essentialType" className="form-label">
+                Type of Essential Item
+              </label>
+              <select
+                id="essentialType"
+                className="input-field"
+                {...register('essentialType', { 
+                  required: 'Please select essential type',
+                  onChange: () => {
+                    // Reset sub-type when main type changes
+                    setValue('essentialSubType', '');
+                  }
+                })}
+              >
+                <option value="">Select type</option>
+                <option value="clothes">Clothes</option>
+                <option value="furniture">Furniture</option>
+                <option value="blankets">Blankets & Bedding</option>
+                <option value="shoes">Shoes</option>
+                <option value="kitchen">Kitchen Items</option>
+                <option value="toiletries">Toiletries</option>
+                <option value="other">Other</option>
+              </select>
+              {errors.essentialType && (
+                <p className="mt-1 text-sm text-red-600">{errors.essentialType.message}</p>
+              )}
+            </div>
+
+            {/* Sub-options dropdown (appears when a type is selected) */}
+            {selectedEssentialType && availableSubOptions.length > 0 && (
+              <div>
+                <label htmlFor="essentialSubType" className="form-label">
+                  Specific Item
+                </label>
+                <select
+                  id="essentialSubType"
+                  className="input-field"
+                  {...register('essentialSubType', { 
+                    required: 'Please select a specific item' 
+                  })}
+                >
+                  <option value="">Select specific item</option>
+                  {availableSubOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                {errors.essentialSubType && (
+                  <p className="mt-1 text-sm text-red-600">{errors.essentialSubType.message}</p>
+                )}
+              </div>
             )}
           </div>
         )}
