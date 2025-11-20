@@ -1,4 +1,4 @@
-import { Heart, IndianRupee, Package, Users, Mail, Clock, CheckCircle, XCircle, AlertCircle, Utensils, ShoppingBag, DollarSign, MapPin } from 'lucide-react';
+import { Heart, IndianRupee, Package, Users, Mail, Clock, CheckCircle, XCircle, AlertCircle, Utensils, ShoppingBag, DollarSign, MapPin, Eye, Check, X, Loader2 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,8 @@ const Donations: React.FC = () => {
   const [donations, setDonations] = useState<Donation[]>([]);
   const [pageLoading, setPageLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending'>('all');
+  const [selectedDonation, setSelectedDonation] = useState<Donation | null>(null);
+  const [processingStatus, setProcessingStatus] = useState<string | null>(null);
 
   useEffect(() => {
     const loadDonations = async () => {
@@ -66,6 +68,68 @@ const Donations: React.FC = () => {
       .reduce((sum, donation) => sum + Number(donation.amount || 0), 0);
   }, [donations]);
 
+  const handleViewDonation = (donation: Donation) => {
+    setSelectedDonation(donation);
+  };
+
+  const handleAcceptDonation = async (donationId: string) => {
+    if (!confirm('Are you sure you want to accept this donation?')) {
+      return;
+    }
+
+    setProcessingStatus(donationId);
+    try {
+      await apiService.updateDonationStatus(donationId, 'confirmed');
+      toast.success('Donation accepted successfully!');
+      
+      // Update local state
+      setDonations((prev) =>
+        prev.map((donation) =>
+          donation.id === donationId
+            ? { ...donation, status: 'confirmed' }
+            : donation
+        )
+      );
+      
+      if (selectedDonation?.id === donationId) {
+        setSelectedDonation((prev) => prev ? { ...prev, status: 'confirmed' } : null);
+      }
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to accept donation');
+    } finally {
+      setProcessingStatus(null);
+    }
+  };
+
+  const handleRejectDonation = async (donationId: string) => {
+    if (!confirm('Are you sure you want to reject this donation?')) {
+      return;
+    }
+
+    setProcessingStatus(donationId);
+    try {
+      await apiService.updateDonationStatus(donationId, 'cancelled');
+      toast.success('Donation rejected');
+      
+      // Update local state
+      setDonations((prev) =>
+        prev.map((donation) =>
+          donation.id === donationId
+            ? { ...donation, status: 'cancelled' }
+            : donation
+        )
+      );
+      
+      if (selectedDonation?.id === donationId) {
+        setSelectedDonation((prev) => prev ? { ...prev, status: 'cancelled' } : null);
+      }
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to reject donation');
+    } finally {
+      setProcessingStatus(null);
+    }
+  };
+
   if (loading || pageLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -83,7 +147,7 @@ const Donations: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <button
           onClick={() => navigate('/dashboard')}
           className="btn-outline inline-flex items-center mb-6"
@@ -171,27 +235,32 @@ const Donations: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       {isDonor ? 'NGO' : 'Donor'}
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Amount/Quantity
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Date
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Delivery
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Message
                     </th>
+                    {!isDonor && (
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider sticky right-0 bg-gray-50">
+                        Actions
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -252,9 +321,11 @@ const Donations: React.FC = () => {
                         );
                       };
 
+                      const canModify = !isDonor && (donation.status === 'pending' || donation.status === 'confirmed');
+
                       return (
                         <tr key={donation.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="flex-shrink-0 h-10 w-10 bg-primary-100 rounded-full flex items-center justify-center">
                                 <Users className="h-5 w-5 text-primary-600" />
@@ -274,7 +345,7 @@ const Donations: React.FC = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               {getTypeIcon()}
                               <span className="text-sm font-medium text-gray-900">{getTypeLabel()}</span>
@@ -283,16 +354,16 @@ const Donations: React.FC = () => {
                               <div className="text-xs text-gray-500 mt-1">{donation.essential_type}</div>
                             )}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <div className="text-sm font-bold text-gray-900">{amountLabel}</div>
                             {!isMoney && donation.unit && (
                               <div className="text-xs text-gray-500 mt-0.5">{donation.unit}</div>
                             )}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             {getStatusBadge()}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <div className="text-sm text-gray-900">
                               {new Date(donation.created_at).toLocaleDateString()}
                             </div>
@@ -301,7 +372,7 @@ const Donations: React.FC = () => {
                               {new Date(donation.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             {donation.delivery_date ? (
                               <div className="text-sm text-gray-900 flex items-center gap-1.5">
                                 <MapPin className="h-4 w-4 text-primary-600" />
@@ -311,11 +382,52 @@ const Donations: React.FC = () => {
                               <span className="text-sm text-gray-400">—</span>
                             )}
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-4 py-3">
                             <div className="text-sm text-gray-600 max-w-xs truncate" title={donation.message || ''}>
                               {donation.message || <span className="text-gray-400">No message</span>}
                             </div>
                           </td>
+                          {!isDonor && (
+                            <td className="px-4 py-3 whitespace-nowrap sticky right-0 bg-white">
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() => handleViewDonation(donation)}
+                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                  title="View Details"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </button>
+                                {canModify && (
+                                  <>
+                                    <button
+                                      onClick={() => handleAcceptDonation(donation.id)}
+                                      disabled={processingStatus === donation.id}
+                                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                      title="Accept"
+                                    >
+                                      {processingStatus === donation.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Check className="h-4 w-4" />
+                                      )}
+                                    </button>
+                                    <button
+                                      onClick={() => handleRejectDonation(donation.id)}
+                                      disabled={processingStatus === donation.id}
+                                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                      title="Reject"
+                                    >
+                                      {processingStatus === donation.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <X className="h-4 w-4" />
+                                      )}
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                          )}
                         </tr>
                       );
                     })}
@@ -448,6 +560,46 @@ const Donations: React.FC = () => {
                           <div className="text-sm text-gray-600">{donation.message}</div>
                         </div>
                       )}
+
+                      {!isDonor && (donation.status === 'pending' || donation.status === 'confirmed') && (
+                        <div className="pt-3 border-t border-gray-100 flex gap-2">
+                          <button
+                            onClick={() => handleViewDonation(donation)}
+                            className="flex-1 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors flex items-center justify-center gap-2"
+                          >
+                            <Eye className="h-4 w-4" />
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleAcceptDonation(donation.id)}
+                            disabled={processingStatus === donation.id}
+                            className="flex-1 px-3 py-2 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                          >
+                            {processingStatus === donation.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Check className="h-4 w-4" />
+                                Accept
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleRejectDonation(donation.id)}
+                            disabled={processingStatus === donation.id}
+                            className="flex-1 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                          >
+                            {processingStatus === donation.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <X className="h-4 w-4" />
+                                Reject
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -480,6 +632,175 @@ const Donations: React.FC = () => {
             >
               {isDonor ? 'Browse NGOs' : 'Go to Dashboard'}
             </button>
+          </div>
+        )}
+
+        {/* Donation Details Modal */}
+        {selectedDonation && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Donation Details</h2>
+                <button
+                  onClick={() => setSelectedDonation(null)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="h-5 w-5 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Donor/NGO Info */}
+                <div className="flex items-center gap-4 pb-4 border-b border-gray-200">
+                  <div className="h-16 w-16 bg-primary-100 rounded-full flex items-center justify-center">
+                    <Users className="h-8 w-8 text-primary-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {isDonor
+                        ? selectedDonation.ngo_name || 'NGO'
+                        : selectedDonation.donor_name || selectedDonation.display_name || 'Donor'}
+                    </h3>
+                    <p className="text-sm text-gray-500 flex items-center gap-2 mt-1">
+                      <Mail className="h-4 w-4" />
+                      {isDonor
+                        ? selectedDonation.ngo_email || 'No email provided'
+                        : selectedDonation.donor_email || 'No email provided'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Donation Details Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Type</label>
+                    <div className="mt-1 flex items-center gap-2">
+                      {selectedDonation.donation_type === 'money' ? (
+                        <DollarSign className="h-5 w-5 text-green-600" />
+                      ) : selectedDonation.donation_type === 'food' ? (
+                        <Utensils className="h-5 w-5 text-orange-600" />
+                      ) : (
+                        <ShoppingBag className="h-5 w-5 text-blue-600" />
+                      )}
+                      <span className="text-sm font-medium text-gray-900">
+                        {selectedDonation.donation_type === 'money'
+                          ? 'Money'
+                          : selectedDonation.donation_type === 'food'
+                          ? 'Food'
+                          : 'Essentials'}
+                      </span>
+                    </div>
+                    {selectedDonation.essential_type && (
+                      <p className="text-sm text-gray-600 mt-1">{selectedDonation.essential_type}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</label>
+                    <div className="mt-1">
+                      {selectedDonation.status === 'completed' ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <CheckCircle className="h-3.5 w-3.5" />
+                          Completed
+                        </span>
+                      ) : selectedDonation.status === 'confirmed' ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          <CheckCircle className="h-3.5 w-3.5" />
+                          Confirmed
+                        </span>
+                      ) : selectedDonation.status === 'cancelled' || selectedDonation.status === 'failed' ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          <XCircle className="h-3.5 w-3.5" />
+                          {selectedDonation.status.charAt(0).toUpperCase() + selectedDonation.status.slice(1)}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          <AlertCircle className="h-3.5 w-3.5" />
+                          Pending
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      {selectedDonation.donation_type === 'money' ? 'Amount' : 'Quantity'}
+                    </label>
+                    <p className="mt-1 text-lg font-bold text-gray-900">
+                      {selectedDonation.donation_type === 'money'
+                        ? formatCurrency.format(Number(selectedDonation.amount || 0))
+                        : `${selectedDonation.quantity ?? '-'} ${selectedDonation.unit ?? ''}`.trim()}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Date</label>
+                    <p className="mt-1 text-sm text-gray-900 flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-gray-400" />
+                      {new Date(selectedDonation.created_at).toLocaleString()}
+                    </p>
+                  </div>
+
+                  {selectedDonation.delivery_date && (
+                    <div className="col-span-2">
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Delivery Date</label>
+                      <p className="mt-1 text-sm text-gray-900 flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-primary-600" />
+                        {new Date(selectedDonation.delivery_date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Message */}
+                {selectedDonation.message && (
+                  <div className="pt-4 border-t border-gray-200">
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Message</label>
+                    <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{selectedDonation.message}</p>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                {!isDonor && (selectedDonation.status === 'pending' || selectedDonation.status === 'confirmed') && (
+                  <div className="pt-4 border-t border-gray-200 flex gap-3">
+                    <button
+                      onClick={() => handleAcceptDonation(selectedDonation.id)}
+                      disabled={processingStatus === selectedDonation.id}
+                      className="flex-1 px-4 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {processingStatus === selectedDonation.id ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="h-4 w-4" />
+                          Accept Donation
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleRejectDonation(selectedDonation.id)}
+                      disabled={processingStatus === selectedDonation.id}
+                      className="flex-1 px-4 py-2.5 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {processingStatus === selectedDonation.id ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <X className="h-4 w-4" />
+                          Reject Donation
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
