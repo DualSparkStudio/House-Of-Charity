@@ -187,7 +187,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
         donation_type: donationType,
         amount: donationType === 'money' ? Number(data.amount) : undefined,
         quantity: totalQuantity,
-        unit: donationType !== 'money' && selectedEssentialType !== 'clothes' ? data.unit : 'pieces',
+        unit: donationType !== 'money' ? data.unit : undefined,
         essential_type: essentialTypeValue,
         delivery_date: donationType !== 'money' ? data.deliveryDate : undefined,
         message: donationMessage,
@@ -337,57 +337,80 @@ const DonationForm: React.FC<DonationFormProps> = ({
             )}
           </div>
         ) : donationType === 'essentials' && selectedEssentialType === 'clothes' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="shirtQuantity" className="form-label">
-                Shirt Quantity
-              </label>
-              <input
-                id="shirtQuantity"
-                type="number"
-                min="0"
-                className="input-field"
-                placeholder="Enter number of shirts"
-                {...register('shirtQuantity', {
-                  min: { value: 0, message: 'Quantity cannot be negative' },
-                  validate: (value) => {
-                    const pantQty = watch('pantQuantity') || 0;
-                    const shirtQty = value || 0;
-                    if (shirtQty === 0 && pantQty === 0) {
-                      return 'Please enter quantity for at least one item (Shirt or Pant)';
-                    }
-                    return true;
-                  },
-                })}
-              />
-              {errors.shirtQuantity && (
-                <p className="mt-1 text-sm text-red-600">{errors.shirtQuantity.message}</p>
-              )}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="shirtQuantity" className="form-label">
+                  Shirt Quantity
+                </label>
+                <input
+                  id="shirtQuantity"
+                  type="number"
+                  min="0"
+                  className="input-field"
+                  placeholder="Enter number of shirts"
+                  {...register('shirtQuantity', {
+                    min: { value: 0, message: 'Quantity cannot be negative' },
+                    validate: (value) => {
+                      const pantQty = watch('pantQuantity') || 0;
+                      const shirtQty = value || 0;
+                      if (shirtQty === 0 && pantQty === 0) {
+                        return 'Please enter quantity for at least one item (Shirt or Pant)';
+                      }
+                      return true;
+                    },
+                  })}
+                />
+                {errors.shirtQuantity && (
+                  <p className="mt-1 text-sm text-red-600">{errors.shirtQuantity.message}</p>
+                )}
+              </div>
+              <div>
+                <label htmlFor="pantQuantity" className="form-label">
+                  Pant Quantity
+                </label>
+                <input
+                  id="pantQuantity"
+                  type="number"
+                  min="0"
+                  className="input-field"
+                  placeholder="Enter number of pants"
+                  {...register('pantQuantity', {
+                    min: { value: 0, message: 'Quantity cannot be negative' },
+                    validate: (value) => {
+                      const shirtQty = watch('shirtQuantity') || 0;
+                      const pantQty = value || 0;
+                      if (shirtQty === 0 && pantQty === 0) {
+                        return 'Please enter quantity for at least one item (Shirt or Pant)';
+                      }
+                      return true;
+                    },
+                  })}
+                />
+                {errors.pantQuantity && (
+                  <p className="mt-1 text-sm text-red-600">{errors.pantQuantity.message}</p>
+                )}
+              </div>
             </div>
             <div>
-              <label htmlFor="pantQuantity" className="form-label">
-                Pant Quantity
+              <label htmlFor="unit" className="form-label">
+                Unit
               </label>
-              <input
-                id="pantQuantity"
-                type="number"
-                min="0"
+              <select
+                id="unit"
                 className="input-field"
-                placeholder="Enter number of pants"
-                {...register('pantQuantity', {
-                  min: { value: 0, message: 'Quantity cannot be negative' },
-                  validate: (value) => {
-                    const shirtQty = watch('shirtQuantity') || 0;
-                    const pantQty = value || 0;
-                    if (shirtQty === 0 && pantQty === 0) {
-                      return 'Please enter quantity for at least one item (Shirt or Pant)';
-                    }
-                    return true;
-                  },
-                })}
-              />
-              {errors.pantQuantity && (
-                <p className="mt-1 text-sm text-red-600">{errors.pantQuantity.message}</p>
+                {...register('unit', { required: 'Unit is required' })}
+              >
+                <option value="">Select unit</option>
+                <option value="pieces">Pieces</option>
+                <option value="sets">Sets</option>
+                <option value="items">Items</option>
+                <option value="boxes">Boxes</option>
+                <option value="bags">Bags</option>
+                <option value="other">Other</option>
+              </select>
+              {errors.unit && (
+                <p className="mt-1 text-sm text-red-600">{errors.unit.message}</p>
               )}
             </div>
           </div>
