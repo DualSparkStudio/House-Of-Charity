@@ -1,4 +1,4 @@
-import { Calendar, Heart, IndianRupee, Package, Users } from 'lucide-react';
+import { Calendar, Heart, IndianRupee, Package, Users, Mail, Clock, CheckCircle, XCircle, AlertCircle, Gift, Utensils, ShoppingBag, DollarSign, MapPin } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -165,69 +165,296 @@ const Donations: React.FC = () => {
         </div>
 
         {donations.length > 0 ? (
-          <div className="space-y-4">
-            {donations
-              .filter((donation) => {
-                if (statusFilter === 'all') return true;
-                return donation.status === statusFilter;
-              })
-              .map((donation) => {
-              const isMoney = donation.donation_type === 'money';
-              const amountLabel = isMoney
-                ? formatCurrency.format(Number(donation.amount || 0))
-                : `${donation.quantity ?? '-'} ${donation.unit ?? ''}`.trim();
-              const typeLabel = isMoney
-                ? 'Monetary donation'
-                : donation.donation_type === 'food'
-                ? 'Food donation'
-                : 'Essential items';
+          <div className="card overflow-hidden p-0">
+            {/* Desktop Table View */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      {isDonor ? 'NGO' : 'Donor'}
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Amount/Quantity
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Delivery
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Message
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {donations
+                    .filter((donation) => {
+                      if (statusFilter === 'all') return true;
+                      return donation.status === statusFilter;
+                    })
+                    .map((donation) => {
+                      const isMoney = donation.donation_type === 'money';
+                      const amountLabel = isMoney
+                        ? formatCurrency.format(Number(donation.amount || 0))
+                        : `${donation.quantity ?? '-'} ${donation.unit ?? ''}`.trim();
+                      
+                      const getTypeIcon = () => {
+                        if (isMoney) return <DollarSign className="h-4 w-4 text-green-600" />;
+                        if (donation.donation_type === 'food') return <Utensils className="h-4 w-4 text-orange-600" />;
+                        return <ShoppingBag className="h-4 w-4 text-blue-600" />;
+                      };
 
-                return (
-                  <div key={donation.id} className="card">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                      <div>
-                        <p className="text-lg font-semibold text-gray-900">
-                          {isDonor
-                            ? donation.ngo_name || 'NGO'
-                            : donation.donor_name || donation.display_name || 'Donor'}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {isDonor
-                            ? donation.ngo_email || 'No email provided'
-                            : donation.donor_email || 'No email provided'}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xl font-bold text-gray-900">{amountLabel}</p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(donation.created_at).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-3 text-sm text-gray-600">
-                      <span className="inline-flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">
-                        <Package className="h-4 w-4" />
-                        {typeLabel}
-                      </span>
-                      <span className="inline-flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full capitalize">
-                        <Calendar className="h-4 w-4" />
-                        {donation.status}
-                      </span>
-                      {donation.delivery_date && (
-                        <span className="inline-flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">
-                          <Calendar className="h-4 w-4" />
-                          Delivery {new Date(donation.delivery_date).toLocaleDateString()}
+                      const getTypeLabel = () => {
+                        if (isMoney) return 'Money';
+                        if (donation.donation_type === 'food') return 'Food';
+                        return 'Essentials';
+                      };
+
+                      const getStatusBadge = () => {
+                        const status = donation.status?.toLowerCase() || 'pending';
+                        if (status === 'completed') {
+                          return (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              <CheckCircle className="h-3.5 w-3.5" />
+                              Completed
+                            </span>
+                          );
+                        }
+                        if (status === 'confirmed') {
+                          return (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              <CheckCircle className="h-3.5 w-3.5" />
+                              Confirmed
+                            </span>
+                          );
+                        }
+                        if (status === 'cancelled' || status === 'failed') {
+                          return (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              <XCircle className="h-3.5 w-3.5" />
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </span>
+                          );
+                        }
+                        return (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            <AlertCircle className="h-3.5 w-3.5" />
+                            Pending
+                          </span>
+                        );
+                      };
+
+                      return (
+                        <tr key={donation.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-10 w-10 bg-primary-100 rounded-full flex items-center justify-center">
+                                <Users className="h-5 w-5 text-primary-600" />
+                              </div>
+                              <div className="ml-4">
+                                <div className="text-sm font-semibold text-gray-900">
+                                  {isDonor
+                                    ? donation.ngo_name || 'NGO'
+                                    : donation.donor_name || donation.display_name || 'Donor'}
+                                </div>
+                                <div className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
+                                  <Mail className="h-3 w-3" />
+                                  {isDonor
+                                    ? donation.ngo_email || 'No email'
+                                    : donation.donor_email || 'No email'}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              {getTypeIcon()}
+                              <span className="text-sm font-medium text-gray-900">{getTypeLabel()}</span>
+                            </div>
+                            {donation.essential_type && (
+                              <div className="text-xs text-gray-500 mt-1">{donation.essential_type}</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-bold text-gray-900">{amountLabel}</div>
+                            {!isMoney && donation.unit && (
+                              <div className="text-xs text-gray-500 mt-0.5">{donation.unit}</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {getStatusBadge()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
+                              {new Date(donation.created_at).toLocaleDateString()}
+                            </div>
+                            <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                              <Clock className="h-3 w-3" />
+                              {new Date(donation.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {donation.delivery_date ? (
+                              <div className="text-sm text-gray-900 flex items-center gap-1.5">
+                                <MapPin className="h-4 w-4 text-primary-600" />
+                                {new Date(donation.delivery_date).toLocaleDateString()}
+                              </div>
+                            ) : (
+                              <span className="text-sm text-gray-400">—</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-600 max-w-xs truncate" title={donation.message || ''}>
+                              {donation.message || <span className="text-gray-400">No message</span>}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="lg:hidden divide-y divide-gray-200">
+              {donations
+                .filter((donation) => {
+                  if (statusFilter === 'all') return true;
+                  return donation.status === statusFilter;
+                })
+                .map((donation) => {
+                  const isMoney = donation.donation_type === 'money';
+                  const amountLabel = isMoney
+                    ? formatCurrency.format(Number(donation.amount || 0))
+                    : `${donation.quantity ?? '-'} ${donation.unit ?? ''}`.trim();
+
+                  const getTypeIcon = () => {
+                    if (isMoney) return <DollarSign className="h-5 w-5 text-green-600" />;
+                    if (donation.donation_type === 'food') return <Utensils className="h-5 w-5 text-orange-600" />;
+                    return <ShoppingBag className="h-5 w-5 text-blue-600" />;
+                  };
+
+                  const getTypeLabel = () => {
+                    if (isMoney) return 'Money';
+                    if (donation.donation_type === 'food') return 'Food';
+                    return 'Essentials';
+                  };
+
+                  const getStatusBadge = () => {
+                    const status = donation.status?.toLowerCase() || 'pending';
+                    if (status === 'completed') {
+                      return (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <CheckCircle className="h-3.5 w-3.5" />
+                          Completed
                         </span>
+                      );
+                    }
+                    if (status === 'confirmed') {
+                      return (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          <CheckCircle className="h-3.5 w-3.5" />
+                          Confirmed
+                        </span>
+                      );
+                    }
+                    if (status === 'cancelled' || status === 'failed') {
+                      return (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          <XCircle className="h-3.5 w-3.5" />
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </span>
+                      );
+                    }
+                    return (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        <AlertCircle className="h-3.5 w-3.5" />
+                        Pending
+                      </span>
+                    );
+                  };
+
+                  return (
+                    <div key={donation.id} className="p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="flex-shrink-0 h-10 w-10 bg-primary-100 rounded-full flex items-center justify-center">
+                            <Users className="h-5 w-5 text-primary-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-semibold text-gray-900 truncate">
+                              {isDonor
+                                ? donation.ngo_name || 'NGO'
+                                : donation.donor_name || donation.display_name || 'Donor'}
+                            </div>
+                            <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5 truncate">
+                              <Mail className="h-3 w-3 flex-shrink-0" />
+                              {isDonor
+                                ? donation.ngo_email || 'No email'
+                                : donation.donor_email || 'No email'}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right ml-2">
+                          <div className="text-lg font-bold text-gray-900">{amountLabel}</div>
+                          {getStatusBadge()}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                        <div>
+                          <div className="text-xs text-gray-500 mb-1">Type</div>
+                          <div className="flex items-center gap-2">
+                            {getTypeIcon()}
+                            <span className="font-medium text-gray-900">{getTypeLabel()}</span>
+                          </div>
+                          {donation.essential_type && (
+                            <div className="text-xs text-gray-500 mt-1">{donation.essential_type}</div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500 mb-1">Date</div>
+                          <div className="text-gray-900 flex items-center gap-1.5">
+                            <Clock className="h-4 w-4 text-gray-400" />
+                            {new Date(donation.created_at).toLocaleDateString()}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            {new Date(donation.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      </div>
+
+                      {donation.delivery_date && (
+                        <div className="mb-3">
+                          <div className="text-xs text-gray-500 mb-1">Delivery Date</div>
+                          <div className="text-sm text-gray-900 flex items-center gap-1.5">
+                            <MapPin className="h-4 w-4 text-primary-600" />
+                            {new Date(donation.delivery_date).toLocaleDateString()}
+                          </div>
+                        </div>
+                      )}
+
+                      {donation.message && (
+                        <div className="pt-3 border-t border-gray-100">
+                          <div className="text-xs text-gray-500 mb-1">Message</div>
+                          <div className="text-sm text-gray-600">{donation.message}</div>
+                        </div>
                       )}
                     </div>
-                    {donation.message && (
-                      <p className="mt-4 text-sm text-gray-600">{donation.message}</p>
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })}
+            </div>
+
             {donations.filter((donation) => statusFilter === 'all' || donation.status === statusFilter).length === 0 && (
-              <div className="card text-center py-12">
+              <div className="p-12 text-center">
                 <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No donations found</h3>
                 <p className="text-gray-600">
