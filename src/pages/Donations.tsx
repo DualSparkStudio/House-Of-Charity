@@ -229,36 +229,35 @@ const Donations: React.FC = () => {
         </div>
 
         {donations.length > 0 ? (
-          <div className="card overflow-hidden p-0">
+          <div className="card overflow-hidden p-0 shadow-sm">
             {/* Desktop Table View */}
-            <div className="hidden lg:block overflow-x-auto -mx-4 sm:-mx-6 lg:-mx-8">
-              <div className="inline-block min-w-full align-middle">
-                <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50 border-b border-gray-200">
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50 border-b-2 border-gray-300">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-[200px]">
                       {isDonor ? 'NGO' : 'Donor'}
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-[140px]">
                       Type
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-[140px]">
                       Amount/Quantity
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-[120px]">
                       Status
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-[140px]">
                       Date
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-[120px]">
                       Delivery
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[200px]">
                       Message
                     </th>
                     {!isDonor && (
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider sticky right-0 bg-gray-50">
+                      <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-[140px] sticky right-0 bg-gray-50 z-10">
                         Actions
                       </th>
                     )}
@@ -326,71 +325,81 @@ const Donations: React.FC = () => {
 
                       return (
                         <tr key={donation.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="flex items-center">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center min-w-0">
                               <div className="flex-shrink-0 h-10 w-10 bg-primary-100 rounded-full flex items-center justify-center">
                                 <Users className="h-5 w-5 text-primary-600" />
                               </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-semibold text-gray-900">
+                              <div className="ml-3 min-w-0 flex-1">
+                                <div className="text-sm font-semibold text-gray-900 truncate">
                                   {isDonor
                                     ? donation.ngo_name || 'NGO'
                                     : donation.donor_name || donation.display_name || 'Donor'}
                                 </div>
-                                <div className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
-                                  <Mail className="h-3 w-3" />
-                                  {isDonor
-                                    ? donation.ngo_email || 'No email'
-                                    : donation.donor_email || 'No email'}
+                                <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5 truncate">
+                                  <Mail className="h-3 w-3 flex-shrink-0" />
+                                  <span className="truncate">
+                                    {isDonor
+                                      ? donation.ngo_email || 'No email'
+                                      : donation.donor_email || 'No email'}
+                                  </span>
                                 </div>
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              {getTypeIcon()}
-                              <span className="text-sm font-medium text-gray-900">{getTypeLabel()}</span>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-2">
+                                {getTypeIcon()}
+                                <span className="text-sm font-medium text-gray-900">{getTypeLabel()}</span>
+                              </div>
+                              {donation.essential_type && (
+                                <div className="text-xs text-gray-500 mt-1 truncate max-w-[120px]" title={donation.essential_type}>
+                                  {donation.essential_type}
+                                </div>
+                              )}
                             </div>
-                            {donation.essential_type && (
-                              <div className="text-xs text-gray-500 mt-1">{donation.essential_type}</div>
-                            )}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm font-bold text-gray-900">{amountLabel}</div>
-                            {!isMoney && donation.unit && (
-                              <div className="text-xs text-gray-500 mt-0.5">{donation.unit}</div>
-                            )}
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex flex-col items-end">
+                              <div className="text-sm font-bold text-gray-900">{amountLabel}</div>
+                              {!isMoney && donation.unit && (
+                                <div className="text-xs text-gray-500 mt-0.5">{donation.unit}</div>
+                              )}
+                            </div>
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
+                          <td className="px-6 py-4 text-center">
                             {getStatusBadge()}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
-                              {new Date(donation.created_at).toLocaleDateString()}
-                            </div>
-                            <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                              <Clock className="h-3 w-3" />
-                              {new Date(donation.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <div className="text-sm font-medium text-gray-900">
+                                {new Date(donation.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                              </div>
+                              <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                                <Clock className="h-3 w-3" />
+                                {new Date(donation.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
                             </div>
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
+                          <td className="px-6 py-4">
                             {donation.delivery_date ? (
                               <div className="text-sm text-gray-900 flex items-center gap-1.5">
-                                <MapPin className="h-4 w-4 text-primary-600" />
-                                {new Date(donation.delivery_date).toLocaleDateString()}
+                                <MapPin className="h-4 w-4 text-primary-600 flex-shrink-0" />
+                                <span>{new Date(donation.delivery_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                               </div>
                             ) : (
                               <span className="text-sm text-gray-400">—</span>
                             )}
                           </td>
-                          <td className="px-4 py-3">
-                            <div className="text-sm text-gray-600 max-w-xs truncate" title={donation.message || ''}>
-                              {donation.message || <span className="text-gray-400">No message</span>}
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-600 max-w-[250px] truncate" title={donation.message || ''}>
+                              {donation.message || <span className="text-gray-400 italic">No message</span>}
                             </div>
                           </td>
                           {!isDonor && (
-                            <td className="px-4 py-3 whitespace-nowrap sticky right-0 bg-white">
-                              <div className="flex items-center justify-center gap-2">
+                            <td className="px-6 py-4 text-center sticky right-0 bg-white z-10 border-l border-gray-200">
+                              <div className="flex items-center justify-center gap-1.5">
                                 <button
                                   onClick={() => handleViewDonation(donation)}
                                   className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -434,7 +443,6 @@ const Donations: React.FC = () => {
                     })}
                 </tbody>
               </table>
-              </div>
             </div>
 
             {/* Mobile Card View */}
