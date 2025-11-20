@@ -164,22 +164,24 @@ const DonationForm: React.FC<DonationFormProps> = ({
             : data.essentialType)
         : undefined;
 
-      // Build message with shirt/pant quantities if clothes donation
+      // Build message with shirt/pant/general quantities if clothes donation
       let donationMessage = data.description;
       if (donationType === 'essentials' && selectedEssentialType === 'clothes') {
         const shirtQty = data.shirtQuantity || 0;
         const pantQty = data.pantQuantity || 0;
+        const generalQty = data.quantity || 0;
         const quantityParts = [];
         if (shirtQty > 0) quantityParts.push(`${shirtQty} Shirt${shirtQty > 1 ? 's' : ''}`);
         if (pantQty > 0) quantityParts.push(`${pantQty} Pant${pantQty > 1 ? 's' : ''}`);
+        if (generalQty > 0) quantityParts.push(`${generalQty} item${generalQty > 1 ? 's' : ''}`);
         if (quantityParts.length > 0) {
           donationMessage = `Quantity: ${quantityParts.join(', ')}. ${data.description}`;
         }
       }
 
-      // Calculate total quantity for clothes (shirt + pant), otherwise use regular quantity
+      // Calculate total quantity for clothes (shirt + pant + general), otherwise use regular quantity
       const totalQuantity = donationType === 'essentials' && selectedEssentialType === 'clothes'
-        ? (data.shirtQuantity || 0) + (data.pantQuantity || 0)
+        ? (data.shirtQuantity || 0) + (data.pantQuantity || 0) + (data.quantity || 0)
         : (donationType !== 'money' ? Number(data.quantity) : undefined);
 
       await apiService.createDonation({
@@ -353,9 +355,10 @@ const DonationForm: React.FC<DonationFormProps> = ({
                     min: { value: 0, message: 'Quantity cannot be negative' },
                     validate: (value) => {
                       const pantQty = watch('pantQuantity') || 0;
+                      const generalQty = watch('quantity') || 0;
                       const shirtQty = value || 0;
-                      if (shirtQty === 0 && pantQty === 0) {
-                        return 'Please enter quantity for at least one item (Shirt or Pant)';
+                      if (shirtQty === 0 && pantQty === 0 && generalQty === 0) {
+                        return 'Please enter quantity for at least one item (Shirt, Pant, or general Quantity)';
                       }
                       return true;
                     },
@@ -379,9 +382,10 @@ const DonationForm: React.FC<DonationFormProps> = ({
                     min: { value: 0, message: 'Quantity cannot be negative' },
                     validate: (value) => {
                       const shirtQty = watch('shirtQuantity') || 0;
+                      const generalQty = watch('quantity') || 0;
                       const pantQty = value || 0;
-                      if (shirtQty === 0 && pantQty === 0) {
-                        return 'Please enter quantity for at least one item (Shirt or Pant)';
+                      if (shirtQty === 0 && pantQty === 0 && generalQty === 0) {
+                        return 'Please enter quantity for at least one item (Shirt, Pant, or general Quantity)';
                       }
                       return true;
                     },
@@ -392,29 +396,58 @@ const DonationForm: React.FC<DonationFormProps> = ({
                 )}
               </div>
             </div>
-            <div>
-              <label htmlFor="unit" className="form-label">
-                Unit
-              </label>
-              <select
-                id="unit"
-                className="input-field"
-                {...register('unit', { required: 'Unit is required' })}
-              >
-                <option value="">Select unit</option>
-                <option value="quantity">Quantity</option>
-                <option value="kg">Kilograms (kg)</option>
-                <option value="lbs">Pounds (lbs)</option>
-                <option value="pieces">Pieces</option>
-                <option value="sets">Sets</option>
-                <option value="items">Items</option>
-                <option value="boxes">Boxes</option>
-                <option value="bags">Bags</option>
-                <option value="other">Other</option>
-              </select>
-              {errors.unit && (
-                <p className="mt-1 text-sm text-red-600">{errors.unit.message}</p>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="quantity" className="form-label">
+                  Quantity
+                </label>
+                <input
+                  id="quantity"
+                  type="number"
+                  min="0"
+                  className="input-field"
+                  placeholder="Enter total quantity"
+                  {...register('quantity', {
+                    min: { value: 0, message: 'Quantity cannot be negative' },
+                    validate: (value) => {
+                      const pantQty = watch('pantQuantity') || 0;
+                      const shirtQty = watch('shirtQuantity') || 0;
+                      const generalQty = value || 0;
+                      if (shirtQty === 0 && pantQty === 0 && generalQty === 0) {
+                        return 'Please enter quantity for at least one item (Shirt, Pant, or general Quantity)';
+                      }
+                      return true;
+                    },
+                  })}
+                />
+                {errors.quantity && (
+                  <p className="mt-1 text-sm text-red-600">{errors.quantity.message}</p>
+                )}
+              </div>
+              <div>
+                <label htmlFor="unit" className="form-label">
+                  Unit
+                </label>
+                <select
+                  id="unit"
+                  className="input-field"
+                  {...register('unit', { required: 'Unit is required' })}
+                >
+                  <option value="">Select unit</option>
+                  <option value="quantity">Quantity</option>
+                  <option value="kg">Kilograms (kg)</option>
+                  <option value="lbs">Pounds (lbs)</option>
+                  <option value="pieces">Pieces</option>
+                  <option value="sets">Sets</option>
+                  <option value="items">Items</option>
+                  <option value="boxes">Boxes</option>
+                  <option value="bags">Bags</option>
+                  <option value="other">Other</option>
+                </select>
+                {errors.unit && (
+                  <p className="mt-1 text-sm text-red-600">{errors.unit.message}</p>
+                )}
+              </div>
             </div>
           </div>
         ) : (
