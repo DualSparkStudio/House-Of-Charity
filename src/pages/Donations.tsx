@@ -1,4 +1,4 @@
-import { Calendar, Heart, IndianRupee, Package, Users, Mail, Clock, CheckCircle, XCircle, AlertCircle, Gift, Utensils, ShoppingBag, DollarSign, MapPin } from 'lucide-react';
+import { Heart, IndianRupee, Package, Users, Mail, Clock, CheckCircle, XCircle, AlertCircle, Utensils, ShoppingBag, DollarSign, MapPin } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
