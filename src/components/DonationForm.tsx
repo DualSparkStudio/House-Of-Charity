@@ -275,21 +275,38 @@ const DonationForm: React.FC<DonationFormProps> = ({
         </div>
 
         {/* Delivery Date */}
-        <div>
-          <label htmlFor="deliveryDate" className="form-label">
-            Preferred Delivery Date
-          </label>
-          <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              id="deliveryDate"
-              type="date"
-              className="input-field pl-10"
-              min={new Date().toISOString().split('T')[0]}
-              {...register('deliveryDate')}
-            />
+        {donationType !== 'money' && (
+          <div>
+            <label htmlFor="deliveryDate" className="form-label">
+              Preferred Delivery Date
+            </label>
+            <div className="relative">
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                id="deliveryDate"
+                type="date"
+                className="input-field pl-10"
+                min={new Date().toISOString().split('T')[0]}
+                {...register('deliveryDate', {
+                  required: donationType !== 'money' ? 'Delivery date is required' : false,
+                  validate: (value) => {
+                    if (!value) return true; // Skip validation if empty (for money donations)
+                    const selectedDate = new Date(value);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0); // Reset time to compare dates only
+                    if (selectedDate < today) {
+                      return 'Delivery date cannot be in the past';
+                    }
+                    return true;
+                  },
+                })}
+              />
+            </div>
+            {errors.deliveryDate && (
+              <p className="mt-1 text-sm text-red-600">{errors.deliveryDate.message}</p>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Information Notice */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
