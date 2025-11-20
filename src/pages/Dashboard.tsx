@@ -333,7 +333,7 @@ const Dashboard: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
-          <aside className="space-y-6">
+          <aside className="space-y-6 order-2 lg:order-1">
             <div className="card">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Access</h2>
               <div className="space-y-3">
@@ -377,10 +377,10 @@ const Dashboard: React.FC = () => {
             )}
           </aside>
 
-          <main className="space-y-6">
+          <main className="space-y-6 order-1 lg:order-2">
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold text-gray-900">Dashboard Insights</h1>
-              <p className="text-gray-600">{insightSubtitle}</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard Insights</h1>
+              <p className="text-sm sm:text-base text-gray-600">{insightSubtitle}</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">

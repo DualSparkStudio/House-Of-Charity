@@ -311,16 +311,16 @@ const NGODetail: React.FC = () => {
 
         {/* NGO Header */}
         <div className="card mb-6">
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
             {isEditingProfile ? (
               <input
                 value={editableValues.name}
                 onChange={(event) => handleFieldChange('name', event.target.value)}
-                className="input-field text-2xl font-semibold text-gray-900"
+                className="input-field text-xl sm:text-2xl font-semibold text-gray-900"
                 placeholder="Organisation name"
               />
             ) : (
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                 {ngo.name || 'Untitled Organisation'}
               </h1>
             )}
@@ -339,7 +339,7 @@ const NGODetail: React.FC = () => {
               placeholder="Short tagline or mission"
             />
           ) : (
-            <p className="text-gray-600 text-lg">
+            <p className="text-sm sm:text-base text-gray-600">
               {ngo.description || 'Share a short tagline to tell donors what you do.'}
             </p>
           )}
@@ -860,8 +860,8 @@ const NGODetail: React.FC = () => {
 
         {/* Donation Modal */}
         {showDonationModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-            <div className="relative bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+            <div className="relative bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto m-4">
                 <button
                   onClick={() => {
                     setShowDonationModal(false);

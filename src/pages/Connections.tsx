@@ -69,10 +69,10 @@ const Connections: React.FC = () => {
         >
           Back to Dashboard
         </button>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">My Connections</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Connections</h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">
               Manage the NGOs you are connected with and continue supporting their work.
             </p>
           </div>
@@ -159,8 +159,8 @@ const Connections: React.FC = () => {
           Back to Dashboard
         </button>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Connected Donors</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Connected Donors</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">
             Keep track of all donors who have supported your organisation.
           </p>
         </div>

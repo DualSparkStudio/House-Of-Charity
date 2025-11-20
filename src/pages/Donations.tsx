@@ -156,10 +156,10 @@ const Donations: React.FC = () => {
         </button>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               {isDonor ? 'My Donations' : 'Donations Received'}
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-sm sm:text-base text-gray-600 mt-2">
               {isDonor
                 ? 'Track every contribution you’ve made and revisit the NGOs you support.'
                 : 'View all contributions made to your organization and plan follow-ups with donors.'}
@@ -231,8 +231,9 @@ const Donations: React.FC = () => {
         {donations.length > 0 ? (
           <div className="card overflow-hidden p-0">
             {/* Desktop Table View */}
-            <div className="hidden lg:block overflow-x-auto">
-              <table className="w-full">
+            <div className="hidden lg:block overflow-x-auto -mx-4 sm:-mx-6 lg:-mx-8">
+              <div className="inline-block min-w-full align-middle">
+                <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
@@ -433,6 +434,7 @@ const Donations: React.FC = () => {
                     })}
                 </tbody>
               </table>
+              </div>
             </div>
 
             {/* Mobile Card View */}
@@ -521,7 +523,7 @@ const Donations: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-3">
                         <div>
                           <div className="text-xs text-gray-500 mb-1">Type</div>
                           <div className="flex items-center gap-2">
@@ -637,10 +639,10 @@ const Donations: React.FC = () => {
 
         {/* Donation Details Modal */}
         {selectedDonation && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Donation Details</h2>
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 sm:p-6">
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4">
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-4 flex items-center justify-between">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Donation Details</h2>
                 <button
                   onClick={() => setSelectedDonation(null)}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -671,7 +673,7 @@ const Donations: React.FC = () => {
                 </div>
 
                 {/* Donation Details Grid */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Type</label>
                     <div className="mt-1 flex items-center gap-2">
@@ -762,7 +764,7 @@ const Donations: React.FC = () => {
 
                 {/* Action Buttons */}
                 {!isDonor && (selectedDonation.status === 'pending' || selectedDonation.status === 'confirmed') && (
-                  <div className="pt-4 border-t border-gray-200 flex gap-3">
+                  <div className="pt-4 border-t border-gray-200 flex flex-col sm:flex-row gap-3">
                     <button
                       onClick={() => handleAcceptDonation(selectedDonation.id)}
                       disabled={processingStatus === selectedDonation.id}
