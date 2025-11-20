@@ -23,6 +23,8 @@ interface DonationFormData {
   deliveryDate?: string;
   essentialType?: string;
   essentialSubType?: string;
+  shirtQuantity?: number;
+  pantQuantity?: number;
 }
 
 const DonationForm: React.FC<DonationFormProps> = ({
@@ -50,8 +52,6 @@ const DonationForm: React.FC<DonationFormProps> = ({
       'Baby Clothes',
       'Formal Wear',
       'Casual Wear',
-      'Shirt',
-      'Pant',
     ],
     furniture: [
       'Chairs',
@@ -119,6 +119,8 @@ const DonationForm: React.FC<DonationFormProps> = ({
       deliveryDate: initialData?.deliveryDate,
       essentialType: initialData?.essentialType,
       essentialSubType: initialData?.essentialSubType,
+      shirtQuantity: initialData?.shirtQuantity,
+      pantQuantity: initialData?.pantQuantity,
     },
   });
 
@@ -136,6 +138,8 @@ const DonationForm: React.FC<DonationFormProps> = ({
       deliveryDate: initialData?.deliveryDate,
       essentialType: initialData?.essentialType,
       essentialSubType: initialData?.essentialSubType,
+      shirtQuantity: initialData?.shirtQuantity,
+      pantQuantity: initialData?.pantQuantity,
     });
   }, [initialData, reset]);
 
@@ -160,15 +164,33 @@ const DonationForm: React.FC<DonationFormProps> = ({
             : data.essentialType)
         : undefined;
 
+      // Build message with shirt/pant quantities if clothes donation
+      let donationMessage = data.description;
+      if (donationType === 'essentials' && selectedEssentialType === 'clothes') {
+        const shirtQty = data.shirtQuantity || 0;
+        const pantQty = data.pantQuantity || 0;
+        const quantityParts = [];
+        if (shirtQty > 0) quantityParts.push(`${shirtQty} Shirt${shirtQty > 1 ? 's' : ''}`);
+        if (pantQty > 0) quantityParts.push(`${pantQty} Pant${pantQty > 1 ? 's' : ''}`);
+        if (quantityParts.length > 0) {
+          donationMessage = `Quantity: ${quantityParts.join(', ')}. ${data.description}`;
+        }
+      }
+
+      // Calculate total quantity for clothes (shirt + pant), otherwise use regular quantity
+      const totalQuantity = donationType === 'essentials' && selectedEssentialType === 'clothes'
+        ? (data.shirtQuantity || 0) + (data.pantQuantity || 0)
+        : (donationType !== 'money' ? Number(data.quantity) : undefined);
+
       await apiService.createDonation({
         ngo_id: ngoId,
         donation_type: donationType,
         amount: donationType === 'money' ? Number(data.amount) : undefined,
-        quantity: donationType !== 'money' ? Number(data.quantity) : undefined,
-        unit: donationType !== 'money' ? data.unit : undefined,
+        quantity: totalQuantity,
+        unit: donationType !== 'money' && selectedEssentialType !== 'clothes' ? data.unit : 'pieces',
         essential_type: essentialTypeValue,
         delivery_date: donationType !== 'money' ? data.deliveryDate : undefined,
-        message: data.description,
+        message: donationMessage,
         currency: 'USD',
         anonymous: false,
       });
@@ -236,9 +258,14 @@ const DonationForm: React.FC<DonationFormProps> = ({
                 className="input-field"
                 {...register('essentialType', { 
                   required: 'Please select essential type',
-                  onChange: () => {
+                  onChange: (e) => {
                     // Reset sub-type when main type changes
                     setValue('essentialSubType', '');
+                    // Reset shirt and pant quantities when type changes away from clothes
+                    if (e.target.value !== 'clothes') {
+                      setValue('shirtQuantity', undefined);
+                      setValue('pantQuantity', undefined);
+                    }
                   }
                 })}
               >
@@ -308,6 +335,61 @@ const DonationForm: React.FC<DonationFormProps> = ({
             {errors.amount && (
               <p className="mt-1 text-sm text-red-600">{errors.amount.message}</p>
             )}
+          </div>
+        ) : donationType === 'essentials' && selectedEssentialType === 'clothes' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="shirtQuantity" className="form-label">
+                Shirt Quantity
+              </label>
+              <input
+                id="shirtQuantity"
+                type="number"
+                min="0"
+                className="input-field"
+                placeholder="Enter number of shirts"
+                {...register('shirtQuantity', {
+                  min: { value: 0, message: 'Quantity cannot be negative' },
+                  validate: (value) => {
+                    const pantQty = watch('pantQuantity') || 0;
+                    const shirtQty = value || 0;
+                    if (shirtQty === 0 && pantQty === 0) {
+                      return 'Please enter quantity for at least one item (Shirt or Pant)';
+                    }
+                    return true;
+                  },
+                })}
+              />
+              {errors.shirtQuantity && (
+                <p className="mt-1 text-sm text-red-600">{errors.shirtQuantity.message}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="pantQuantity" className="form-label">
+                Pant Quantity
+              </label>
+              <input
+                id="pantQuantity"
+                type="number"
+                min="0"
+                className="input-field"
+                placeholder="Enter number of pants"
+                {...register('pantQuantity', {
+                  min: { value: 0, message: 'Quantity cannot be negative' },
+                  validate: (value) => {
+                    const shirtQty = watch('shirtQuantity') || 0;
+                    const pantQty = value || 0;
+                    if (shirtQty === 0 && pantQty === 0) {
+                      return 'Please enter quantity for at least one item (Shirt or Pant)';
+                    }
+                    return true;
+                  },
+                })}
+              />
+              {errors.pantQuantity && (
+                <p className="mt-1 text-sm text-red-600">{errors.pantQuantity.message}</p>
+              )}
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
