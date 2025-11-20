@@ -288,9 +288,9 @@ const DonationForm: React.FC<DonationFormProps> = ({
                 className="input-field pl-10"
                 min={new Date().toISOString().split('T')[0]}
                 {...register('deliveryDate', {
-                  required: donationType !== 'money' ? 'Delivery date is required' : false,
+                  required: 'Delivery date is required',
                   validate: (value) => {
-                    if (!value) return true; // Skip validation if empty (for money donations)
+                    if (!value) return 'Delivery date is required';
                     const selectedDate = new Date(value);
                     const today = new Date();
                     today.setHours(0, 0, 0, 0); // Reset time to compare dates only
