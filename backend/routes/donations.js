@@ -78,7 +78,11 @@ router.post('/', authenticateToken, async (req, res) => {
 
     const donor_id = req.user.id;
 
-    const normalizedType = donation_type || 'money';
+    // Normalize donation_type: 'essentials' -> 'daily_essentials' for database compatibility
+    let normalizedType = donation_type || 'money';
+    if (normalizedType === 'essentials') {
+      normalizedType = 'daily_essentials';
+    }
 
     if (!ngo_id) {
       return res.status(400).json({ error: 'NGO ID is required' });
@@ -164,7 +168,7 @@ router.post('/', authenticateToken, async (req, res) => {
           currency: currency || 'INR',
           quantity: normalizedType === 'money' ? null : Number(quantity),
           unit: normalizedType === 'money' ? null : unit,
-          essential_type: normalizedType === 'essentials' ? essential_type || null : null,
+          essential_type: normalizedType === 'daily_essentials' ? essential_type || null : null,
           service_details: normalizedType === 'services' ? (message || details || null) : service_details || null,
           details: details || null,
           delivery_date: delivery_date || null,
