@@ -44,7 +44,7 @@ export interface Donation {
   currency: string;
   payment_method?: string;
   transaction_id?: string;
-  status: 'pending' | 'completed' | 'failed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'completed' | 'failed' | 'cancelled';
   message?: string;
   anonymous: boolean;
   donation_type?: 'money' | 'food' | 'essentials' | string;
