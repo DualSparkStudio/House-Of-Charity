@@ -299,7 +299,7 @@ const NGODetail: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-full mx-auto" style={{paddingLeft: '10%', paddingRight: '10%', paddingTop: '2%', paddingBottom: '2%'}}>
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}

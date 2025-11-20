@@ -147,7 +147,7 @@ const Donations: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         <button
           onClick={() => navigate('/dashboard')}
           className="btn-outline inline-flex items-center mb-6"
