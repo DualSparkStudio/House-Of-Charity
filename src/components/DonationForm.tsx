@@ -402,6 +402,9 @@ const DonationForm: React.FC<DonationFormProps> = ({
                 {...register('unit', { required: 'Unit is required' })}
               >
                 <option value="">Select unit</option>
+                <option value="quantity">Quantity</option>
+                <option value="kg">Kilograms (kg)</option>
+                <option value="lbs">Pounds (lbs)</option>
                 <option value="pieces">Pieces</option>
                 <option value="sets">Sets</option>
                 <option value="items">Items</option>
@@ -445,6 +448,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
                 {...register('unit', { required: 'Unit is required' })}
               >
                 <option value="">Select unit</option>
+                <option value="quantity">Quantity</option>
                 <option value="kg">Kilograms (kg)</option>
                 <option value="lbs">Pounds (lbs)</option>
                 <option value="pieces">Pieces</option>
