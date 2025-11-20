@@ -73,7 +73,7 @@ const Donations: React.FC = () => {
   };
 
   const handleAcceptDonation = async (donationId: string) => {
-    if (!confirm('Are you sure you want to accept this donation?')) {
+    if (!window.confirm('Are you sure you want to accept this donation?')) {
       return;
     }
 
@@ -102,7 +102,7 @@ const Donations: React.FC = () => {
   };
 
   const handleRejectDonation = async (donationId: string) => {
-    if (!confirm('Are you sure you want to reject this donation?')) {
+    if (!window.confirm('Are you sure you want to reject this donation?')) {
       return;
     }
 
