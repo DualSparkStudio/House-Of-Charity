@@ -12,6 +12,7 @@ const {
 const { isMockDb, useSupabase } = require('../utils/dbMode');
 const {
   notifyDonationReceived,
+  notifyDonationRequestAgain,
 } = require('../services/notificationService');
 
 let supabaseAdapter = null;
@@ -597,6 +598,195 @@ router.get('/:id', authenticateToken, async (req, res) => {
     res.json({ donation });
   } catch (error) {
     console.error('Error fetching donation:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Request donation again (for NGOs when delivery date has passed)
+router.post('/:id/request-again', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { new_delivery_date } = req.body;
+
+    if (isMockDbMode()) {
+      const donation = mockDonations.find((item) => item.id === id);
+      if (!donation) {
+        return res.status(404).json({ error: 'Donation not found' });
+      }
+
+      // Only NGO can request again
+      if (req.user.id !== donation.ngo_id) {
+        return res.status(403).json({ error: 'Only the NGO can request a donation again' });
+      }
+
+      // Check if donation is pending/confirmed and delivery date has passed
+      if (donation.status === 'completed' || donation.status === 'cancelled') {
+        return res.status(400).json({ error: 'Cannot request completed or cancelled donations again' });
+      }
+
+      if (!donation.delivery_date) {
+        return res.status(400).json({ error: 'Donation does not have a delivery date' });
+      }
+
+      const deliveryDate = new Date(donation.delivery_date);
+      const now = new Date();
+      if (deliveryDate > now) {
+        return res.status(400).json({ error: 'Delivery date has not passed yet' });
+      }
+
+      // Set new delivery date (7 days from now or use provided date)
+      const futureDate = new_delivery_date 
+        ? new Date(new_delivery_date)
+        : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+      if (futureDate <= now) {
+        return res.status(400).json({ error: 'New delivery date must be in the future' });
+      }
+
+      // Update donation
+      updateMockDonation(id, {
+        delivery_date: futureDate.toISOString(),
+        status: 'pending',
+      });
+
+      // Get NGO info for notification
+      const ngo = findUserById(donation.ngo_id);
+      
+      // Notify donor
+      await notifyDonationRequestAgain({
+        donorId: donation.donor_id,
+        donationId: id,
+        ngoName: ngo?.name || 'An NGO',
+        donationType: donation.donation_type,
+        amount: donation.amount,
+        currency: donation.currency || 'INR',
+        newDeliveryDate: futureDate.toISOString(),
+      });
+
+      return res.json({ 
+        message: 'Donation request sent successfully',
+        donation: enrichDonation({ ...donation, delivery_date: futureDate.toISOString(), status: 'pending' })
+      });
+    }
+
+    if (useSupabase()) {
+      try {
+        const donation = await supabaseAdapter.findDonationById(id);
+        if (!donation) {
+          return res.status(404).json({ error: 'Donation not found' });
+        }
+
+        // Only NGO can request again
+        if (req.user.id !== donation.ngo_id) {
+          return res.status(403).json({ error: 'Only the NGO can request a donation again' });
+        }
+
+        // Check if donation is pending/confirmed and delivery date has passed
+        if (donation.status === 'completed' || donation.status === 'cancelled') {
+          return res.status(400).json({ error: 'Cannot request completed or cancelled donations again' });
+        }
+
+        if (!donation.delivery_date) {
+          return res.status(400).json({ error: 'Donation does not have a delivery date' });
+        }
+
+        const deliveryDate = new Date(donation.delivery_date);
+        const now = new Date();
+        if (deliveryDate > now) {
+          return res.status(400).json({ error: 'Delivery date has not passed yet' });
+        }
+
+        // Set new delivery date (7 days from now or use provided date)
+        const futureDate = new_delivery_date 
+          ? new Date(new_delivery_date)
+          : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+        if (futureDate <= now) {
+          return res.status(400).json({ error: 'New delivery date must be in the future' });
+        }
+
+        // Update donation
+        await supabaseAdapter.updateDonation(id, {
+          delivery_date: futureDate.toISOString(),
+          status: 'pending',
+        });
+
+        // Get NGO info for notification
+        const ngo = await supabaseAdapter.findUserById(donation.ngo_id);
+        
+        // Notify donor
+        await notifyDonationRequestAgain({
+          donorId: donation.donor_id,
+          donationId: id,
+          ngoName: ngo?.name || 'An NGO',
+          donationType: donation.donation_type,
+          amount: donation.amount,
+          currency: donation.currency || 'INR',
+          newDeliveryDate: futureDate.toISOString(),
+        });
+
+        const updatedDonation = await supabaseAdapter.findDonationById(id);
+        return res.json({ 
+          message: 'Donation request sent successfully',
+          donation: mapSupabaseDonation(updatedDonation)
+        });
+      } catch (error) {
+        console.error('Error requesting donation again:', error);
+        const message = error?.message || 'Internal server error';
+        return res.status(500).json({ error: message });
+      }
+    }
+
+    // MySQL fallback
+    const [donations] = await db.execute(
+      'SELECT * FROM donations WHERE id = ?',
+      [id]
+    );
+
+    if (donations.length === 0) {
+      return res.status(404).json({ error: 'Donation not found' });
+    }
+
+    const donation = donations[0];
+
+    // Only NGO can request again
+    if (req.user.id !== donation.ngo_id) {
+      return res.status(403).json({ error: 'Only the NGO can request a donation again' });
+    }
+
+    // Check if donation is pending/confirmed and delivery date has passed
+    if (donation.status === 'completed' || donation.status === 'cancelled') {
+      return res.status(400).json({ error: 'Cannot request completed or cancelled donations again' });
+    }
+
+    if (!donation.delivery_date) {
+      return res.status(400).json({ error: 'Donation does not have a delivery date' });
+    }
+
+    const deliveryDate = new Date(donation.delivery_date);
+    const now = new Date();
+    if (deliveryDate > now) {
+      return res.status(400).json({ error: 'Delivery date has not passed yet' });
+    }
+
+    // Set new delivery date (7 days from now or use provided date)
+    const futureDate = new_delivery_date 
+      ? new Date(new_delivery_date)
+      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    if (futureDate <= now) {
+      return res.status(400).json({ error: 'New delivery date must be in the future' });
+    }
+
+    // Update donation
+    await db.execute(
+      'UPDATE donations SET delivery_date = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [futureDate.toISOString(), 'pending', id]
+    );
+
+    res.json({ message: 'Donation request sent successfully' });
+  } catch (error) {
+    console.error('Error requesting donation again:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

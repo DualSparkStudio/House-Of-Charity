@@ -1,4 +1,4 @@
-import { Heart, IndianRupee, Package, Users, Mail, Clock, CheckCircle, XCircle, AlertCircle, Utensils, ShoppingBag, DollarSign, MapPin, Eye, Check, X, Loader2 } from 'lucide-react';
+import { Heart, IndianRupee, Package, Users, Mail, Clock, CheckCircle, XCircle, AlertCircle, Utensils, ShoppingBag, DollarSign, MapPin, Eye, Check, X, Loader2, RefreshCw } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -128,6 +128,49 @@ const Donations: React.FC = () => {
     } finally {
       setProcessingStatus(null);
     }
+  };
+
+  const handleRequestAgain = async (donationId: string) => {
+    if (!window.confirm('Send a request to the donor to fulfill this donation again with a new delivery date?')) {
+      return;
+    }
+
+    setProcessingStatus(donationId);
+    try {
+      const response = await apiService.requestDonationAgain(donationId);
+      toast.success('Request sent to donor successfully!');
+      
+      // Reload donations to get updated data
+      const donationsResponse = userProfile?.user_type === 'donor'
+        ? await apiService.getDonationsByDonor(userProfile.id)
+        : await apiService.getDonationsByNGO(userProfile.id);
+
+      const list: Donation[] = (donationsResponse?.donations || []).sort(
+        (a: Donation, b: Donation) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setDonations(list);
+      
+      // Update selected donation if it's the one we just updated
+      if (selectedDonation?.id === donationId && response.donation) {
+        setSelectedDonation(response.donation);
+      }
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to send request');
+    } finally {
+      setProcessingStatus(null);
+    }
+  };
+
+  // Check if donation is eligible for "Request Again"
+  const canRequestAgain = (donation: Donation) => {
+    if (isDonor) return false; // Only NGOs can request again
+    if (donation.status === 'completed' || donation.status === 'cancelled') return false;
+    if (!donation.delivery_date) return false;
+    
+    const deliveryDate = new Date(donation.delivery_date);
+    const now = new Date();
+    return deliveryDate < now; // Delivery date has passed
   };
 
   if (loading || pageLoading) {
@@ -412,7 +455,7 @@ const Donations: React.FC = () => {
                               <div className="flex items-center justify-center gap-1.5">
                                 <button
                                   onClick={() => handleViewDonation(donation)}
-                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                  className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                                   title="View Details"
                                 >
                                   <Eye className="h-4 w-4" />
@@ -422,7 +465,7 @@ const Donations: React.FC = () => {
                                     <button
                                       onClick={() => handleAcceptDonation(donation.id)}
                                       disabled={processingStatus === donation.id}
-                                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                      className="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                       title="Accept"
                                     >
                                       {processingStatus === donation.id ? (
@@ -434,7 +477,7 @@ const Donations: React.FC = () => {
                                     <button
                                       onClick={() => handleRejectDonation(donation.id)}
                                       disabled={processingStatus === donation.id}
-                                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                      className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                       title="Reject"
                                     >
                                       {processingStatus === donation.id ? (
@@ -444,6 +487,20 @@ const Donations: React.FC = () => {
                                       )}
                                     </button>
                                   </>
+                                )}
+                                {canRequestAgain(donation) && (
+                                  <button
+                                    onClick={() => handleRequestAgain(donation.id)}
+                                    disabled={processingStatus === donation.id}
+                                    className="p-2 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Request Again"
+                                  >
+                                    {processingStatus === donation.id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <RefreshCw className="h-4 w-4" />
+                                    )}
+                                  </button>
                                 )}
                               </div>
                             </td>
@@ -801,42 +858,65 @@ const Donations: React.FC = () => {
                 )}
 
                 {/* Action Buttons */}
-                {!isDonor && (selectedDonation.status === 'pending' || selectedDonation.status === 'confirmed') && (
-                  <div className="pt-4 border-t border-gray-200 flex flex-col sm:flex-row gap-3">
-                    <button
-                      onClick={() => handleAcceptDonation(selectedDonation.id)}
-                      disabled={processingStatus === selectedDonation.id}
-                      className="flex-1 px-4 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {processingStatus === selectedDonation.id ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <Check className="h-4 w-4" />
-                          Accept Donation
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => handleRejectDonation(selectedDonation.id)}
-                      disabled={processingStatus === selectedDonation.id}
-                      className="flex-1 px-4 py-2.5 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {processingStatus === selectedDonation.id ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <X className="h-4 w-4" />
-                          Reject Donation
-                        </>
-                      )}
-                    </button>
+                {!isDonor && (
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-3">
+                    {(selectedDonation.status === 'pending' || selectedDonation.status === 'confirmed') && (
+                      <>
+                        <button
+                          onClick={() => handleAcceptDonation(selectedDonation.id)}
+                          disabled={processingStatus === selectedDonation.id}
+                          className="flex-1 px-4 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {processingStatus === selectedDonation.id ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <Check className="h-4 w-4" />
+                              Accept Donation
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleRejectDonation(selectedDonation.id)}
+                          disabled={processingStatus === selectedDonation.id}
+                          className="flex-1 px-4 py-2.5 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {processingStatus === selectedDonation.id ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <X className="h-4 w-4" />
+                              Reject Donation
+                            </>
+                          )}
+                        </button>
+                      </>
+                    )}
+                    {canRequestAgain(selectedDonation) && (
+                      <button
+                        onClick={() => handleRequestAgain(selectedDonation.id)}
+                        disabled={processingStatus === selectedDonation.id}
+                        className="flex-1 px-4 py-2.5 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {processingStatus === selectedDonation.id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="h-4 w-4" />
+                            Request Again
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

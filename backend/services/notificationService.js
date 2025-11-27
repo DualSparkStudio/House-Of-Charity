@@ -191,9 +191,75 @@ const notifyCurrentRequirementsUpdated = async ({
   }));
 };
 
+const notifyDonationRequestAgain = async ({
+  donorId,
+  donationId,
+  ngoName,
+  donationType,
+  amount,
+  currency,
+  newDeliveryDate,
+}) => {
+  const safeAmount =
+    donationType === "money" && amount && Number(amount) > 0
+      ? `${currency || "INR"} ${Number(amount)}`
+      : null;
+
+  const message = safeAmount
+    ? `${ngoName} is requesting your donation of ${safeAmount} again.`
+    : `${ngoName} is requesting your ${donationType} donation again.`;
+
+  try {
+    if (isMockDbMode()) {
+      createMockNotification({
+        user_id: donorId,
+        account_type: "donor",
+        title: "Donation request from NGO",
+        message,
+        type: "donation",
+        related_id: donationId,
+        related_type: "donation",
+        meta: {
+          donation_type: donationType,
+          amount: safeAmount ? Number(amount) : null,
+          new_delivery_date: newDeliveryDate,
+          action: "request_again",
+        },
+      });
+      return;
+    }
+
+    if (useSupabase() && supabaseAdapter) {
+      await supabaseAdapter.createNotification({
+        user_id: donorId,
+        account_type: "donor",
+        title: "Donation request from NGO",
+        message,
+        type: "donation",
+        related_id: donationId,
+        related_type: "donation",
+        meta: {
+          donation_type: donationType,
+          amount: safeAmount ? Number(amount) : null,
+          new_delivery_date: newDeliveryDate,
+          action: "request_again",
+        },
+      });
+      return;
+    }
+
+    console.warn(
+      "[notificationService] Database mode does not support donation request notifications."
+    );
+  } catch (error) {
+    console.error("[notificationService] notifyDonationRequestAgain failed:", error);
+  }
+};
+
 module.exports = {
   notifyDonationReceived,
   notifyRequirementPosted,
   notifyCurrentRequirementsUpdated,
+  notifyDonationRequestAgain,
 };
 
