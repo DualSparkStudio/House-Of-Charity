@@ -17,6 +17,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../api/database';
+import DonationForm from '../components/DonationForm';
 import RequirementForm from '../components/RequirementForm';
 import { useAuth } from '../contexts/AuthContext';
 import { Donation } from '../types';
@@ -46,6 +47,17 @@ const Dashboard: React.FC = () => {
     ngoName: string;
     notificationId?: string;
   } | null>(null);
+  const [showDonationModal, setShowDonationModal] = useState(false);
+  const [donationPreset, setDonationPreset] = useState<{
+    type?: 'money' | 'food' | 'essentials';
+    amount?: number;
+    description?: string;
+    quantity?: number;
+    unit?: string;
+    deliveryDate?: string;
+    essentialType?: string;
+  } | null>(null);
+  const [donationFormNgo, setDonationFormNgo] = useState<{ id: string; name: string } | null>(null);
 
   const ngoReceivedDonations = useMemo(
     () => ngoDonations.filter((donation) => donation.status === 'completed'),
@@ -662,6 +674,42 @@ const Dashboard: React.FC = () => {
             <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => {
+                  if (!donationRequestModal.donation) return;
+                  
+                  // Convert donation to preset format
+                  const preset = {
+                    type: donationRequestModal.donation.donation_type === 'daily_essentials' 
+                      ? 'essentials' 
+                      : donationRequestModal.donation.donation_type as 'money' | 'food' | 'essentials',
+                    amount: donationRequestModal.donation.amount ? Number(donationRequestModal.donation.amount) : undefined,
+                    description: donationRequestModal.donation.message || undefined,
+                    quantity: donationRequestModal.donation.quantity ? Number(donationRequestModal.donation.quantity) : undefined,
+                    unit: donationRequestModal.donation.unit || undefined,
+                    deliveryDate: donationRequestModal.donation.delivery_date || undefined,
+                    essentialType: donationRequestModal.donation.essential_type || undefined,
+                  };
+                  
+                  setDonationPreset(preset);
+                  setDonationFormNgo({
+                    id: donationRequestModal.donation.ngo_id || '',
+                    name: donationRequestModal.ngoName,
+                  });
+                  setShowDonationModal(true);
+                  
+                  // Mark notification as read and close request modal
+                  if (donationRequestModal.notificationId) {
+                    apiService.markNotificationsRead([donationRequestModal.notificationId]);
+                    refreshNotifications();
+                  }
+                  setDonationRequestModal(null);
+                }}
+                className="flex-1 px-4 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Repeat Donation
+              </button>
+              <button
+                onClick={() => {
                   if (donationRequestModal.notificationId) {
                     apiService.markNotificationsRead([donationRequestModal.notificationId]);
                     refreshNotifications();
@@ -669,7 +717,7 @@ const Dashboard: React.FC = () => {
                   setDonationRequestModal(null);
                   navigate('/donations');
                 }}
-                className="flex-1 px-4 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
               >
                 <Heart className="h-4 w-4" />
                 View in Donations
@@ -686,6 +734,42 @@ const Dashboard: React.FC = () => {
               >
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Donation Form Modal */}
+      {isDonor && showDonationModal && donationFormNgo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="relative max-w-3xl w-full bg-white dark:bg-gray-800 rounded-xl shadow-xl max-h-[90vh] overflow-hidden transition-colors">
+            <button
+              className="absolute right-4 top-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 z-10"
+              onClick={() => {
+                setShowDonationModal(false);
+                setDonationPreset(null);
+                setDonationFormNgo(null);
+              }}
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <div className="p-6 overflow-y-auto max-h-[90vh]">
+              <DonationForm
+                ngoId={donationFormNgo.id}
+                ngoName={donationFormNgo.name}
+                initialData={donationPreset || undefined}
+                onSuccess={() => {
+                  setShowDonationModal(false);
+                  setDonationPreset(null);
+                  setDonationFormNgo(null);
+                  toast.success('Donation submitted successfully!');
+                }}
+                onCancel={() => {
+                  setShowDonationModal(false);
+                  setDonationPreset(null);
+                  setDonationFormNgo(null);
+                }}
+              />
             </div>
           </div>
         </div>
