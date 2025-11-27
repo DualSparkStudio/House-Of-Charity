@@ -135,13 +135,18 @@ const Donations: React.FC = () => {
       return;
     }
 
+    if (!userProfile) {
+      toast.error('User profile not found');
+      return;
+    }
+
     setProcessingStatus(donationId);
     try {
       const response = await apiService.requestDonationAgain(donationId);
       toast.success('Request sent to donor successfully!');
       
       // Reload donations to get updated data
-      const donationsResponse = userProfile?.user_type === 'donor'
+      const donationsResponse = userProfile.user_type === 'donor'
         ? await apiService.getDonationsByDonor(userProfile.id)
         : await apiService.getDonationsByNGO(userProfile.id);
 
