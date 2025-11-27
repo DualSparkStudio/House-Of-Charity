@@ -269,7 +269,7 @@ const Dashboard: React.FC = () => {
                 toast.error('Failed to load donation request');
               }
             } else {
-              toast.info('No donation requests at the moment');
+              toast('No donation requests at the moment', { icon: 'ℹ️' });
             }
           },
         },
