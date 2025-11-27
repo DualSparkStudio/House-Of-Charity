@@ -146,7 +146,7 @@ const Donations: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         <button
           onClick={() => navigate('/dashboard')}
@@ -233,37 +233,37 @@ const Donations: React.FC = () => {
             {/* Desktop Table View */}
             <div className="hidden lg:block overflow-x-auto">
               <table className="w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50 border-b-2 border-gray-300">
+                <thead className="bg-gray-50 dark:bg-gray-800 border-b-2 border-gray-300 dark:border-gray-700">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-[200px]">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[200px]">
                       {isDonor ? 'NGO' : 'Donor'}
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-[140px]">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[140px]">
                       Type
                     </th>
-                    <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-[130px]">
+                    <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[130px]">
                       Amount/Quantity
                     </th>
-                    <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-[100px]">
+                    <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[100px]">
                       Status
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-[130px]">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[130px]">
                       Date
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-[110px]">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[110px]">
                       Delivery
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[250px]">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider min-w-[250px]">
                       Message
                     </th>
                     {!isDonor && (
-                      <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-[140px] sticky right-0 bg-gray-50 z-10">
+                      <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[140px] sticky right-0 bg-gray-50 dark:bg-gray-800 z-10">
                         Actions
                       </th>
                     )}
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {donations
                     .filter((donation) => {
                       if (statusFilter === 'all') return true;
@@ -324,19 +324,19 @@ const Donations: React.FC = () => {
                       const canModify = !isDonor && (donation.status === 'pending' || donation.status === 'confirmed');
 
                       return (
-                        <tr key={donation.id} className="hover:bg-gray-50 transition-colors">
+                        <tr key={donation.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                           <td className="px-6 py-4">
                             <div className="flex items-center min-w-0">
-                              <div className="flex-shrink-0 h-10 w-10 bg-primary-100 rounded-full flex items-center justify-center">
-                                <Users className="h-5 w-5 text-primary-600" />
+                              <div className="flex-shrink-0 h-10 w-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
+                                <Users className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                               </div>
                               <div className="ml-3 min-w-0 flex-1">
-                                <div className="text-sm font-semibold text-gray-900 truncate">
+                                <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                                   {isDonor
                                     ? donation.ngo_name || 'NGO'
                                     : donation.donor_name || donation.display_name || 'Donor'}
                                 </div>
-                                <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5 truncate">
+                                <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5 truncate">
                                   <Mail className="h-3 w-3 flex-shrink-0" />
                                   <span className="truncate">
                                     {isDonor
@@ -351,10 +351,10 @@ const Donations: React.FC = () => {
                             <div className="flex flex-col">
                               <div className="flex items-center gap-2">
                                 {getTypeIcon()}
-                                <span className="text-sm font-medium text-gray-900">{getTypeLabel()}</span>
+                                <span className="text-sm font-medium text-gray-900 dark:text-white">{getTypeLabel()}</span>
                               </div>
                               {donation.essential_type && (
-                                <div className="text-xs text-gray-500 mt-1 truncate max-w-[120px]" title={donation.essential_type}>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate max-w-[120px]" title={donation.essential_type}>
                                   {donation.essential_type}
                                 </div>
                               )}
@@ -363,14 +363,14 @@ const Donations: React.FC = () => {
                           <td className="px-6 py-4 text-right">
                             <div className="flex flex-col items-end">
                               {isMoney ? (
-                                <div className="text-sm font-bold text-gray-900">{amountLabel}</div>
+                                <div className="text-sm font-bold text-gray-900 dark:text-white">{amountLabel}</div>
                               ) : (
                                 <>
-                                  <div className="text-sm font-bold text-gray-900">
+                                  <div className="text-sm font-bold text-gray-900 dark:text-white">
                                     {donation.quantity ?? '-'} {donation.unit ?? ''}
                                   </div>
                                   {donation.amount && Number(donation.amount) > 0 && (
-                                    <div className="text-xs text-gray-500 mt-0.5">
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                       {formatCurrency.format(Number(donation.amount))}
                                     </div>
                                   )}
@@ -383,10 +383,10 @@ const Donations: React.FC = () => {
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex flex-col">
-                              <div className="text-sm font-medium text-gray-900">
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">
                                 {new Date(donation.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                               </div>
-                              <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                              <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5">
                                 <Clock className="h-3 w-3" />
                                 {new Date(donation.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </div>
@@ -394,21 +394,21 @@ const Donations: React.FC = () => {
                           </td>
                           <td className="px-6 py-4">
                             {donation.delivery_date ? (
-                              <div className="text-sm text-gray-900 flex items-center gap-1.5">
-                                <MapPin className="h-4 w-4 text-primary-600 flex-shrink-0" />
+                              <div className="text-sm text-gray-900 dark:text-white flex items-center gap-1.5">
+                                <MapPin className="h-4 w-4 text-primary-600 dark:text-primary-400 flex-shrink-0" />
                                 <span>{new Date(donation.delivery_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                               </div>
                             ) : (
-                              <span className="text-sm text-gray-400">—</span>
+                              <span className="text-sm text-gray-400 dark:text-gray-500">—</span>
                             )}
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm text-gray-600 max-w-[300px] truncate" title={donation.message || ''}>
-                              {donation.message || <span className="text-gray-400 italic">No message</span>}
+                            <div className="text-sm text-gray-600 dark:text-gray-300 max-w-[300px] truncate" title={donation.message || ''}>
+                              {donation.message || <span className="text-gray-400 dark:text-gray-500 italic">No message</span>}
                             </div>
                           </td>
                           {!isDonor && (
-                            <td className="px-6 py-4 text-center sticky right-0 bg-white z-10 border-l border-gray-200">
+                            <td className="px-6 py-4 text-center sticky right-0 bg-white dark:bg-gray-800 z-10 border-l border-gray-200 dark:border-gray-700">
                               <div className="flex items-center justify-center gap-1.5">
                                 <button
                                   onClick={() => handleViewDonation(donation)}
@@ -658,9 +658,9 @@ const Donations: React.FC = () => {
         {/* Donation Details Modal */}
         {selectedDonation && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 sm:p-6">
-            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4">
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-4 flex items-center justify-between">
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Donation Details</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4 transition-colors">
+              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 flex items-center justify-between">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Donation Details</h2>
                 <button
                   onClick={() => setSelectedDonation(null)}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"

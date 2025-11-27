@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { getApiBaseUrl } from './utils/apiBase';
 import Dashboard from './pages/Dashboard';
 import Connections from './pages/Connections';
@@ -15,7 +16,9 @@ import Donations from './pages/Donations';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
-function App() {
+function AppContent() {
+  const { isDarkMode } = useTheme();
+
   useEffect(() => {
     const checkApiHealth = async () => {
       const baseApiUrl = getApiBaseUrl();
@@ -36,18 +39,17 @@ function App() {
   }, []);
 
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-              },
-            }}
+    <Router>
+      <div className="App">
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: isDarkMode ? '#1f2937' : '#363636',
+              color: '#fff',
+            },
+          }}
           />
           <Routes>
             <Route path="/" element={<Layout><Home /></Layout>} />
@@ -64,6 +66,16 @@ function App() {
         </div>
       </Router>
     </AuthProvider>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

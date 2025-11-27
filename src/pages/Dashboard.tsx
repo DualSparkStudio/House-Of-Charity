@@ -330,7 +330,7 @@ const Dashboard: React.FC = () => {
     : 'Invite donors to schedule their next contribution.';
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
           <aside className="space-y-6 order-2 lg:order-1">
