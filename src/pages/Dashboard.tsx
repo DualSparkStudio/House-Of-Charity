@@ -56,6 +56,7 @@ const Dashboard: React.FC = () => {
     unit?: string;
     deliveryDate?: string;
     essentialType?: string;
+    essentialSubType?: string;
   } | null>(null);
   const [donationFormNgo, setDonationFormNgo] = useState<{ id: string; name: string } | null>(null);
 
@@ -677,6 +678,37 @@ const Dashboard: React.FC = () => {
                   if (!donationRequestModal.donation) return;
                   
                   // Convert donation to preset format
+                  // Parse essential_type - it might be stored as "clothes: Winter Clothes" or just "clothes"
+                  let essentialType = undefined;
+                  let essentialSubType = undefined;
+                  if (donationRequestModal.donation.essential_type) {
+                    const essentialTypeParts = donationRequestModal.donation.essential_type.split(':').map(s => s.trim());
+                    if (essentialTypeParts.length > 1) {
+                      essentialType = essentialTypeParts[0].toLowerCase();
+                      essentialSubType = essentialTypeParts[1];
+                    } else {
+                      // Check if it's a valid base type (clothes, furniture, etc.)
+                      const baseType = essentialTypeParts[0].toLowerCase();
+                      const validBaseTypes = ['clothes', 'furniture', 'blankets', 'shoes', 'kitchen', 'toiletries', 'other'];
+                      if (validBaseTypes.includes(baseType)) {
+                        essentialType = baseType;
+                      } else {
+                        // Try to match common variations
+                        const typeMap: Record<string, string> = {
+                          'clothes': 'clothes',
+                          'furniture': 'furniture',
+                          'blankets': 'blankets',
+                          'bedding': 'blankets',
+                          'shoes': 'shoes',
+                          'kitchen': 'kitchen',
+                          'toiletries': 'toiletries',
+                          'other': 'other',
+                        };
+                        essentialType = typeMap[baseType] || 'other';
+                      }
+                    }
+                  }
+                  
                   const preset = {
                     type: donationRequestModal.donation.donation_type === 'daily_essentials' 
                       ? 'essentials' 
@@ -686,7 +718,8 @@ const Dashboard: React.FC = () => {
                     quantity: donationRequestModal.donation.quantity ? Number(donationRequestModal.donation.quantity) : undefined,
                     unit: donationRequestModal.donation.unit || undefined,
                     deliveryDate: donationRequestModal.donation.delivery_date || undefined,
-                    essentialType: donationRequestModal.donation.essential_type || undefined,
+                    essentialType,
+                    essentialSubType,
                   };
                   
                   setDonationPreset(preset);

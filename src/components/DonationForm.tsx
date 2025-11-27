@@ -128,19 +128,21 @@ const DonationForm: React.FC<DonationFormProps> = ({
   const availableSubOptions = selectedEssentialType ? essentialSubOptions[selectedEssentialType] || [] : [];
 
   useEffect(() => {
-    setDonationType(initialData?.type || 'money');
-    reset({
-      type: initialData?.type || 'money',
-      amount: initialData?.amount,
-      description: initialData?.description || '',
-      quantity: initialData?.quantity,
-      unit: initialData?.unit,
-      deliveryDate: initialData?.deliveryDate,
-      essentialType: initialData?.essentialType,
-      essentialSubType: initialData?.essentialSubType,
-      shirtQuantity: initialData?.shirtQuantity,
-      pantQuantity: initialData?.pantQuantity,
-    });
+    if (initialData) {
+      setDonationType(initialData.type || 'money');
+      reset({
+        type: initialData.type || 'money',
+        amount: initialData.amount,
+        description: initialData.description || '',
+        quantity: initialData.quantity,
+        unit: initialData.unit,
+        deliveryDate: initialData.deliveryDate,
+        essentialType: initialData.essentialType,
+        essentialSubType: initialData.essentialSubType,
+        shirtQuantity: initialData.shirtQuantity,
+        pantQuantity: initialData.pantQuantity,
+      });
+    }
   }, [initialData, reset]);
 
   const onSubmit = async (data: DonationFormData) => {
