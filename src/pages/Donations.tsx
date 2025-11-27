@@ -241,19 +241,19 @@ const Donations: React.FC = () => {
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-[140px]">
                       Type
                     </th>
-                    <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-[140px]">
+                    <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-[130px]">
                       Amount/Quantity
                     </th>
-                    <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-[120px]">
+                    <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-[100px]">
                       Status
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-[140px]">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-[130px]">
                       Date
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-[120px]">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-[110px]">
                       Delivery
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[200px]">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider min-w-[250px]">
                       Message
                     </th>
                     {!isDonor && (
@@ -362,9 +362,19 @@ const Donations: React.FC = () => {
                           </td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex flex-col items-end">
-                              <div className="text-sm font-bold text-gray-900">{amountLabel}</div>
-                              {!isMoney && donation.unit && (
-                                <div className="text-xs text-gray-500 mt-0.5">{donation.unit}</div>
+                              {isMoney ? (
+                                <div className="text-sm font-bold text-gray-900">{amountLabel}</div>
+                              ) : (
+                                <>
+                                  <div className="text-sm font-bold text-gray-900">
+                                    {donation.quantity ?? '-'} {donation.unit ?? ''}
+                                  </div>
+                                  {donation.amount && Number(donation.amount) > 0 && (
+                                    <div className="text-xs text-gray-500 mt-0.5">
+                                      {formatCurrency.format(Number(donation.amount))}
+                                    </div>
+                                  )}
+                                </>
                               )}
                             </div>
                           </td>
@@ -393,7 +403,7 @@ const Donations: React.FC = () => {
                             )}
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm text-gray-600 max-w-[250px] truncate" title={donation.message || ''}>
+                            <div className="text-sm text-gray-600 max-w-[300px] truncate" title={donation.message || ''}>
                               {donation.message || <span className="text-gray-400 italic">No message</span>}
                             </div>
                           </td>
@@ -736,11 +746,29 @@ const Donations: React.FC = () => {
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                       {selectedDonation.donation_type === 'money' ? 'Amount' : 'Quantity'}
                     </label>
-                    <p className="mt-1 text-lg font-bold text-gray-900">
-                      {selectedDonation.donation_type === 'money'
-                        ? formatCurrency.format(Number(selectedDonation.amount || 0))
-                        : `${selectedDonation.quantity ?? '-'} ${selectedDonation.unit ?? ''}`.trim()}
-                    </p>
+                    <div className="mt-1">
+                      {selectedDonation.donation_type === 'money' ? (
+                        <p className="text-lg font-bold text-gray-900">
+                          {formatCurrency.format(Number(selectedDonation.amount || 0))}
+                        </p>
+                      ) : (
+                        <div className="space-y-1">
+                          <p className="text-lg font-bold text-gray-900">
+                            {selectedDonation.quantity ?? '-'} {selectedDonation.unit ?? ''}
+                          </p>
+                          {selectedDonation.amount && Number(selectedDonation.amount) > 0 && (
+                            <p className="text-sm text-gray-600">
+                              Estimated value: {formatCurrency.format(Number(selectedDonation.amount))}
+                            </p>
+                          )}
+                          {selectedDonation.essential_type && (
+                            <p className="text-sm text-gray-600">
+                              Type: {selectedDonation.essential_type}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div>
@@ -762,10 +790,12 @@ const Donations: React.FC = () => {
                   )}
                 </div>
 
-                {/* Message */}
+                {/* Description/Message */}
                 {selectedDonation.message && (
                   <div className="pt-4 border-t border-gray-200">
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Message</label>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      {selectedDonation.donation_type === 'money' ? 'Message' : 'Description'}
+                    </label>
                     <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{selectedDonation.message}</p>
                   </div>
                 )}
