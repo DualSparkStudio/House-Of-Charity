@@ -379,8 +379,8 @@ const Dashboard: React.FC = () => {
 
           <main className="space-y-6 order-1 lg:order-2">
             <div className="space-y-2">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard Insights</h1>
-              <p className="text-sm sm:text-base text-gray-600">{insightSubtitle}</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Dashboard Insights</h1>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">{insightSubtitle}</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -391,11 +391,11 @@ const Dashboard: React.FC = () => {
                       <Icon className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-600">{title}</p>
-                      <p className="text-2xl font-bold text-gray-900">{value}</p>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-300">{title}</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-3">{subtext}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">{subtext}</p>
                 </div>
               ))}
             </div>
@@ -404,28 +404,28 @@ const Dashboard: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="card">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">{latestDonationLabel}</h2>
-                  <Clock className="h-5 w-5 text-gray-400" />
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{latestDonationLabel}</h2>
+                  <Clock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                 </div>
                 {latestDonation ? (
                   <div className="space-y-3">
                     {latestDonationDescription && (
-                      <p className="text-gray-900 font-medium">{latestDonationDescription}</p>
+                      <p className="text-gray-900 dark:text-white font-medium">{latestDonationDescription}</p>
                     )}
                     {latestDonationValue && (
-                      <p className="text-2xl font-semibold text-primary-600">{latestDonationValue}</p>
+                      <p className="text-2xl font-semibold text-primary-600 dark:text-primary-400">{latestDonationValue}</p>
                     )}
                     {latestDonationTime && (
-                      <p className="text-sm text-gray-500">On {latestDonationTime}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">On {latestDonationTime}</p>
                     )}
                     {latestDonation.message && (
-                      <p className="text-sm text-gray-600 border-t border-dashed border-gray-200 pt-3">
-                        “{latestDonation.message}”
+                      <p className="text-sm text-gray-600 dark:text-gray-300 border-t border-dashed border-gray-200 dark:border-gray-700 pt-3">
+                        "{latestDonation.message}"
                       </p>
                     )}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     {isDonor
                       ? 'You have not made any donations yet.'
                       : 'Your NGO has not received donations yet.'}
@@ -435,25 +435,25 @@ const Dashboard: React.FC = () => {
 
               <div className="card">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                     {isDonor ? 'This Month Overview' : 'Upcoming Donation'}
                   </h2>
-                  <TrendingUp className="h-5 w-5 text-gray-400" />
+                  <TrendingUp className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                 </div>
-                <p className="text-gray-900 font-medium">{monthOverviewText}</p>
-                <p className="text-sm text-gray-500 mt-2">{monthOverviewMeta}</p>
+                <p className="text-gray-900 dark:text-white font-medium">{monthOverviewText}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{monthOverviewMeta}</p>
                 {isDonor && stats.totalAmount > 0 && (
-                  <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+                  <div className="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
                     <span>Total impact so far</span>
-                    <span className="font-semibold text-primary-600">
+                    <span className="font-semibold text-primary-600 dark:text-primary-400">
                       {currencyFormatter.format(stats.totalAmount || 0)}
                     </span>
                   </div>
                 )}
                 {!isDonor && nextScheduledDonation && nextScheduledDonation.status && (
-                  <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+                  <div className="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
                     <span>Status</span>
-                    <span className="font-semibold capitalize text-primary-600">
+                    <span className="font-semibold capitalize text-primary-600 dark:text-primary-400">
                       {nextScheduledDonation.status}
                     </span>
                   </div>
@@ -468,12 +468,12 @@ const Dashboard: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="relative max-w-2xl w-full">
             <button
-              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
+              className="absolute right-4 top-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
               onClick={() => setShowRequirementModal(false)}
             >
               ✕
             </button>
-            <div className="bg-white rounded-xl p-0 shadow-xl max-h-[80vh] overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-0 shadow-xl max-h-[80vh] overflow-hidden transition-colors">
               <RequirementForm
                 className="w-full max-h-[80vh] overflow-y-auto px-6 py-6"
                 onCancel={() => setShowRequirementModal(false)}

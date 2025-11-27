@@ -45,10 +45,10 @@ const Connections: React.FC = () => {
 
   if (loading || pageLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your connections...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading your connections...</p>
         </div>
       </div>
     );
@@ -71,8 +71,8 @@ const Connections: React.FC = () => {
         </button>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Connections</h1>
-            <p className="text-sm sm:text-base text-gray-600 mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">My Connections</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">
               Manage the NGOs you are connected with and continue supporting their work.
             </p>
           </div>
@@ -83,9 +83,9 @@ const Connections: React.FC = () => {
 
           {connections.length === 0 ? (
             <div className="card text-center py-12">
-              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">No connections yet</h2>
-              <p className="text-gray-600 mb-6">
+              <Users className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No connections yet</h2>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
                 When you connect with an NGO, it will appear here.
               </p>
               <button onClick={() => navigate('/ngos')} className="btn-primary">
@@ -97,22 +97,22 @@ const Connections: React.FC = () => {
               {connections.map((connection) => (
                 <div key={connection.id} className="card h-full flex flex-col">
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                       {connection.name}
                     </h3>
                     {connection.description && (
-                      <p className="text-gray-600 text-sm mb-4">{connection.description}</p>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">{connection.description}</p>
                     )}
-                    <div className="space-y-3 text-sm text-gray-600">
+                    <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
                       {connection.email && (
                         <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-gray-400" />
+                          <Mail className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                           <span>{connection.email}</span>
                         </div>
                       )}
                       {connection.phone && (
                         <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-gray-400" />
+                          <Phone className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                           <span>{connection.phone}</span>
                         </div>
                       )}
@@ -129,7 +129,7 @@ const Connections: React.FC = () => {
                       onClick={async () => {
                         try {
                           await removeConnection(connection.id);
-                          toast.success(`Removed ${connection.name} from your connections.`);
+                        toast.success(`Removed ${connection.name} from your connections.`);
                         } catch (error: any) {
                           console.error('Failed to remove connection:', error);
                           toast.error(error?.message || 'Unable to remove connection.');
@@ -150,7 +150,7 @@ const Connections: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         <button
           onClick={() => navigate('/dashboard')}
@@ -159,8 +159,8 @@ const Connections: React.FC = () => {
           Back to Dashboard
         </button>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Connected Donors</h1>
-          <p className="text-sm sm:text-base text-gray-600 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Connected Donors</h1>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">
             Keep track of all donors who have supported your organisation.
           </p>
         </div>
@@ -169,7 +169,7 @@ const Connections: React.FC = () => {
           <div className="card text-center py-12">
             <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h2 className="text-lg font-semibold text-gray-900 mb-2">No donors yet</h2>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-300">
               Once donors connect with your organisation, their details will appear here.
             </p>
           </div>
@@ -179,24 +179,24 @@ const Connections: React.FC = () => {
               <div key={donor.id} className="card h-full flex flex-col">
                 <div className="flex-1 space-y-3">
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900">{donor.name}</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{donor.name}</h3>
                     {donor.email && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
-                        <Mail className="h-4 w-4 text-gray-400" />
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mt-1">
+                        <Mail className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                         <span>{donor.email}</span>
                       </div>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 gap-2 text-sm text-gray-600">
+                  <div className="grid grid-cols-1 gap-2 text-sm text-gray-600 dark:text-gray-300">
                     {donor.phone && (
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-gray-400" />
+                    <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                         <span>{donor.phone}</span>
-                      </div>
+                    </div>
                     )}
                     {donor.city && (
                       <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-gray-400" />
+                        <Users className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                         <span>{[donor.city, donor.state, donor.country].filter(Boolean).join(', ')}</span>
                       </div>
                     )}

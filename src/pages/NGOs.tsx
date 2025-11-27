@@ -73,8 +73,8 @@ const NGOs: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Browse NGOs</h1>
-          <p className="text-sm sm:text-base text-gray-600">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">Browse NGOs</h1>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
             Discover and connect with verified non-governmental organizations making a difference
           </p>
         </div>
@@ -85,7 +85,7 @@ const NGOs: React.FC = () => {
             {/* Search */}
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <input
                   type="text"
                   placeholder="Search NGOs by name, description, or mission..."
@@ -113,7 +113,7 @@ const NGOs: React.FC = () => {
 
         {/* Results Count */}
         <div className="mb-6">
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             Showing {filteredNGOs.length} of {ngos.length} NGOs
           </p>
         </div>
@@ -130,43 +130,43 @@ const NGOs: React.FC = () => {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                         {ngo.name}
                       </h3>
                       {ngo.verified && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
                           <Star className="h-3 w-3 mr-1" />
                           Verified
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">{ngo.description}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{ngo.description}</p>
                   </div>
                 </div>
 
                 {/* Contact Info */}
-                <div className="space-y-2 mb-4 text-sm text-gray-600">
-                  <div className="flex items-center text-sm text-gray-600">
+                <div className="space-y-2 mb-4 text-sm text-gray-600 dark:text-gray-300">
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                     <MapPin className="h-4 w-4 mr-2" />
                     <span className="truncate">{ngo.address}</span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                     <Phone className="h-4 w-4 mr-2" />
                     <span>{ngo.phone}</span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                     <Globe className="h-4 w-4 mr-2" />
                     <span>{ngo.email}</span>
                   </div>
                 </div>
 
                 {/* Stats */}
-                <div className="flex items-center justify-between mb-4 text-sm text-gray-600">
-                  <div className="flex items-center text-gray-600">
+                <div className="flex items-center justify-between mb-4 text-sm text-gray-600 dark:text-gray-300">
+                  <div className="flex items-center text-gray-600 dark:text-gray-300">
                     <Users className="h-4 w-4 mr-1" />
                     <span>25+ donors</span>
                   </div>
-                  <div className="flex items-center text-gray-600">
+                  <div className="flex items-center text-gray-600 dark:text-gray-300">
                     <Heart className="h-4 w-4 mr-1" />
                     <span>150+ donations</span>
                   </div>
@@ -192,13 +192,13 @@ const NGOs: React.FC = () => {
 
                       try {
                         await addConnection({
-                          id: ngo.id,
-                          name: ngo.name || 'Unknown NGO',
-                          email: ngo.email,
-                          phone: ngo.phone,
-                          description: ngo.description,
-                        });
-                        toast.success(`Connected with ${ngo.name}`);
+                        id: ngo.id,
+                        name: ngo.name || 'Unknown NGO',
+                        email: ngo.email,
+                        phone: ngo.phone,
+                        description: ngo.description,
+                      });
+                      toast.success(`Connected with ${ngo.name}`);
                       } catch (error: any) {
                         console.error('Failed to connect:', error);
                         toast.error(error?.message || 'Unable to connect with NGO.');

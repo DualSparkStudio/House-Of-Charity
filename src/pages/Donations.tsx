@@ -156,24 +156,24 @@ const Donations: React.FC = () => {
         </button>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
               {isDonor ? 'My Donations' : 'Donations Received'}
             </h1>
-            <p className="text-sm sm:text-base text-gray-600 mt-2">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-2">
               {isDonor
-                ? 'Track every contribution you’ve made and revisit the NGOs you support.'
+                ? 'Track every contribution you've made and revisit the NGOs you support.'
                 : 'View all contributions made to your organization and plan follow-ups with donors.'}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-1 flex self-start md:self-auto">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-1 flex self-start md:self-auto">
             {(['all', 'completed', 'pending'] as const).map((status) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
                 className={`px-3 py-1 text-sm font-medium rounded-md transition ${
                   statusFilter === status
-                    ? 'bg-primary-100 text-primary-700'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
               >
                 {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
@@ -185,23 +185,23 @@ const Donations: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="card">
             <div className="flex items-center">
-              <div className="p-2 bg-primary-100 rounded-lg">
-                <Heart className="h-6 w-6 text-primary-600" />
+              <div className="p-2 bg-primary-100 dark:bg-primary-900 rounded-lg">
+                <Heart className="h-6 w-6 text-primary-600 dark:text-primary-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Donations</p>
-                <p className="text-2xl font-bold text-gray-900">{donations.length}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Donations</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{donations.length}</p>
               </div>
             </div>
           </div>
           <div className="card">
             <div className="flex items-center">
-              <div className="p-2 bg-success-100 rounded-lg">
-                <IndianRupee className="h-6 w-6 text-success-600" />
+              <div className="p-2 bg-success-100 dark:bg-success-900 rounded-lg">
+                <IndianRupee className="h-6 w-6 text-success-600 dark:text-success-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Amount</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Amount</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {formatCurrency.format(totalAmount)}
                 </p>
               </div>
@@ -213,10 +213,10 @@ const Donations: React.FC = () => {
                 <Users className="h-6 w-6 text-secondary-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
                   {isDonor ? 'NGOs Supported' : 'Donors Connected'}
                 </p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {new Set(
                     donations.map((donation) =>
                       isDonor ? donation.ngo_id : donation.donor_id
@@ -264,16 +264,16 @@ const Donations: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {donations
-                    .filter((donation) => {
-                      if (statusFilter === 'all') return true;
-                      return donation.status === statusFilter;
-                    })
-                    .map((donation) => {
-                      const isMoney = donation.donation_type === 'money';
-                      const amountLabel = isMoney
-                        ? formatCurrency.format(Number(donation.amount || 0))
-                        : `${donation.quantity ?? '-'} ${donation.unit ?? ''}`.trim();
+            {donations
+              .filter((donation) => {
+                if (statusFilter === 'all') return true;
+                return donation.status === statusFilter;
+              })
+              .map((donation) => {
+              const isMoney = donation.donation_type === 'money';
+              const amountLabel = isMoney
+                ? formatCurrency.format(Number(donation.amount || 0))
+                : `${donation.quantity ?? '-'} ${donation.unit ?? ''}`.trim();
                       
                       const getTypeIcon = () => {
                         if (isMoney) return <DollarSign className="h-4 w-4 text-green-600" />;
@@ -323,7 +323,7 @@ const Donations: React.FC = () => {
 
                       const canModify = !isDonor && (donation.status === 'pending' || donation.status === 'confirmed');
 
-                      return (
+                return (
                         <tr key={donation.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                           <td className="px-6 py-4">
                             <div className="flex items-center min-w-0">
@@ -332,14 +332,14 @@ const Donations: React.FC = () => {
                               </div>
                               <div className="ml-3 min-w-0 flex-1">
                                 <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                                  {isDonor
-                                    ? donation.ngo_name || 'NGO'
-                                    : donation.donor_name || donation.display_name || 'Donor'}
+                          {isDonor
+                            ? donation.ngo_name || 'NGO'
+                            : donation.donor_name || donation.display_name || 'Donor'}
                                 </div>
                                 <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5 truncate">
                                   <Mail className="h-3 w-3 flex-shrink-0" />
                                   <span className="truncate">
-                                    {isDonor
+                          {isDonor
                                       ? donation.ngo_email || 'No email'
                                       : donation.donor_email || 'No email'}
                                   </span>
@@ -385,12 +385,12 @@ const Donations: React.FC = () => {
                             <div className="flex flex-col">
                               <div className="text-sm font-medium text-gray-900 dark:text-white">
                                 {new Date(donation.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                              </div>
+                      </div>
                               <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5">
                                 <Clock className="h-3 w-3" />
                                 {new Date(donation.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </div>
-                            </div>
+                      </div>
+                    </div>
                           </td>
                           <td className="px-6 py-4">
                             {donation.delivery_date ? (
@@ -503,7 +503,7 @@ const Donations: React.FC = () => {
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                           <XCircle className="h-3.5 w-3.5" />
                           {status.charAt(0).toUpperCase() + status.slice(1)}
-                        </span>
+                      </span>
                       );
                     }
                     return (
@@ -602,7 +602,7 @@ const Donations: React.FC = () => {
                                 <Check className="h-4 w-4" />
                                 Accept
                               </>
-                            )}
+                      )}
                           </button>
                           <button
                             onClick={() => handleRejectDonation(donation.id)}
@@ -619,10 +619,10 @@ const Donations: React.FC = () => {
                             )}
                           </button>
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {donations.filter((donation) => statusFilter === 'all' || donation.status === statusFilter).length === 0 && (
@@ -639,9 +639,9 @@ const Donations: React.FC = () => {
           </div>
         ) : (
           <div className="card text-center py-12">
-            <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No donations yet</h3>
-            <p className="text-gray-600 mb-6">
+            <Package className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No donations yet</h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
               {isDonor
                 ? 'Start supporting an NGO to see your donations listed here.'
                 : 'As soon as donors contribute, the history will appear here.'}

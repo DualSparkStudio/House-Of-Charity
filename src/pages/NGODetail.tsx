@@ -17,24 +17,24 @@ type DonationPreset = {
   essentialType?: string;
 };
 
-type EditableFields = {
-  name: string;
-  description: string;
-  about: string;
-  works_done: string;
-  current_requirements: string;
-  future_plans: string;
-  awards_and_recognition: string;
-  recent_activities: string;
-  gallery: string;
-  phone: string;
-  address: string;
-  city: string;
-  state: string;
-  country: string;
-  pincode: string;
-  website: string;
-};
+  type EditableFields = {
+    name: string;
+    description: string;
+    about: string;
+    works_done: string;
+    current_requirements: string;
+    future_plans: string;
+    awards_and_recognition: string;
+    recent_activities: string;
+    gallery: string;
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    country: string;
+    pincode: string;
+    website: string;
+  };
 
 const NGODetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -316,16 +316,16 @@ const NGODetail: React.FC = () => {
               <input
                 value={editableValues.name}
                 onChange={(event) => handleFieldChange('name', event.target.value)}
-                className="input-field text-xl sm:text-2xl font-semibold text-gray-900"
+                className="input-field text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white"
                 placeholder="Organisation name"
               />
             ) : (
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                 {ngo.name || 'Untitled Organisation'}
               </h1>
             )}
             {ngo.verified && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
                 <Star className="h-4 w-4 mr-1" />
                 Verified
               </span>
@@ -339,7 +339,7 @@ const NGODetail: React.FC = () => {
               placeholder="Short tagline or mission"
             />
           ) : (
-            <p className="text-sm sm:text-base text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
               {ngo.description || 'Share a short tagline to tell donors what you do.'}
             </p>
           )}
@@ -347,27 +347,27 @@ const NGODetail: React.FC = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-primary-50 rounded-lg p-4 text-center">
-            <Heart className="h-8 w-8 text-primary-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">150+</div>
-            <div className="text-sm text-gray-600">Total Donations</div>
+          <div className="bg-primary-50 dark:bg-primary-900/30 rounded-lg p-4 text-center">
+            <Heart className="h-8 w-8 text-primary-600 dark:text-primary-400 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">150+</div>
+            <div className="text-sm text-gray-600 dark:text-gray-300">Total Donations</div>
           </div>
-          <div className="bg-secondary-50 rounded-lg p-4 text-center">
-            <Users className="h-8 w-8 text-secondary-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">
+          <div className="bg-secondary-50 dark:bg-secondary-900/30 rounded-lg p-4 text-center">
+            <Users className="h-8 w-8 text-secondary-600 dark:text-secondary-400 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {connectedDonorCount}
             </div>
-            <div className="text-sm text-gray-600">Connected Donors</div>
+            <div className="text-sm text-gray-600 dark:text-gray-300">Connected Donors</div>
           </div>
-          <div className="bg-success-50 rounded-lg p-4 text-center">
-            <Globe className="h-8 w-8 text-success-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">₹50K+</div>
-            <div className="text-sm text-gray-600">Total Raised</div>
+          <div className="bg-success-50 dark:bg-success-900/30 rounded-lg p-4 text-center">
+            <Globe className="h-8 w-8 text-success-600 dark:text-success-400 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">₹50K+</div>
+            <div className="text-sm text-gray-600 dark:text-gray-300">Total Raised</div>
           </div>
-          <div className="bg-warning-50 rounded-lg p-4 text-center">
-            <Star className="h-8 w-8 text-warning-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">4.8</div>
-            <div className="text-sm text-gray-600">Rating</div>
+          <div className="bg-warning-50 dark:bg-warning-900/30 rounded-lg p-4 text-center">
+            <Star className="h-8 w-8 text-warning-600 dark:text-warning-400 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">4.8</div>
+            <div className="text-sm text-gray-600 dark:text-gray-300">Rating</div>
           </div>
         </div>
 
@@ -375,19 +375,19 @@ const NGODetail: React.FC = () => {
           <div className="card mb-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Connected Donors</h2>
-                <p className="text-sm text-gray-500">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Connected Donors</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Donors who have chosen to stay connected with your organisation.
                 </p>
               </div>
-              <span className="text-sm text-gray-500">{connectedDonorCount} connected</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">{connectedDonorCount} connected</span>
             </div>
             {connectedDonorsLoading ? (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 dark:border-primary-400"></div>
               </div>
             ) : connectedDonors.length === 0 ? (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 You have not connected with any donors yet. Encourage donors to connect from the NGOs page.
               </p>
             ) : (
@@ -395,26 +395,26 @@ const NGODetail: React.FC = () => {
                 {connectedDonors.map((donor) => (
                   <div
                     key={donor.id}
-                    className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border border-gray-200 rounded-lg p-4"
+                    className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
                   >
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{donor.name}</h3>
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mt-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{donor.name}</h3>
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-300 mt-2">
                         {donor.email && (
                           <span className="flex items-center gap-2">
-                            <Mail className="h-4 w-4 text-gray-400" />
+                            <Mail className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                             {donor.email}
                           </span>
                         )}
                         {donor.phone && (
                           <span className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-gray-400" />
+                            <Phone className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                             {donor.phone}
                           </span>
                         )}
                         {[donor.city, donor.state, donor.country].filter(Boolean).length > 0 && (
                           <span className="flex items-center gap-2">
-                            <Users className="h-4 w-4 text-gray-400" />
+                            <Users className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                             {[donor.city, donor.state, donor.country].filter(Boolean).join(', ')}
                           </span>
                         )}
@@ -481,7 +481,7 @@ const NGODetail: React.FC = () => {
                     onClick={async () => {
                       try {
                         await removeConnection(ngo.id);
-                        toast.success(`Removed ${ngo.name} from your connections.`);
+                      toast.success(`Removed ${ngo.name} from your connections.`);
                       } catch (error: any) {
                         console.error('Failed to remove connection:', error);
                         toast.error(error?.message || 'Unable to remove connection.');
@@ -498,13 +498,13 @@ const NGODetail: React.FC = () => {
                       if (!ngo) return;
                       try {
                         await addConnection({
-                          id: ngo.id,
-                          name: ngo.name || 'Unknown NGO',
-                          email: ngo.email,
-                          phone: ngo.phone,
-                          description: ngo.description,
-                        });
-                        toast.success(`Connected with ${ngo.name}`);
+                        id: ngo.id,
+                        name: ngo.name || 'Unknown NGO',
+                        email: ngo.email,
+                        phone: ngo.phone,
+                        description: ngo.description,
+                      });
+                      toast.success(`Connected with ${ngo.name}`);
                       } catch (error: any) {
                         console.error('Failed to connect:', error);
                         toast.error(error?.message || 'Unable to connect with NGO.');

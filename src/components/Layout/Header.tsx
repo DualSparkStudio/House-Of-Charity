@@ -197,13 +197,13 @@ const Header: React.FC = () => {
                     className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors notification-bell"
                     aria-label="Notifications"
                   >
-                    <Bell className="h-5 w-5" />
+                  <Bell className="h-5 w-5" />
                     {unreadNotifications > 0 && (
                       <span className="absolute -top-1 -right-1 min-w-[18px] h-4 bg-red-500 text-white text-[10px] font-semibold leading-4 rounded-full px-1 text-center">
                         {unreadNotifications > 9 ? '9+' : unreadNotifications}
                       </span>
                     )}
-                  </button>
+                </button>
 
                   {areNotificationsOpen && (
                     <div className="absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 max-h-[600px] flex flex-col">
@@ -425,13 +425,13 @@ const Header: React.FC = () => {
                 NGOs
               </Link>
               {currentUser && (
-                <Link
-                  to="/dashboard"
+                  <Link
+                    to="/dashboard"
                   className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
+                    onClick={() => setIsMenuOpen(false)}
+                  >
                   Dashboard
-                </Link>
+                  </Link>
               )}
             </nav>
           </div>

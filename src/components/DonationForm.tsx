@@ -251,13 +251,13 @@ const DonationForm: React.FC<DonationFormProps> = ({
         {/* Essential Type Selection (for daily essentials) */}
         {donationType === 'essentials' && (
           <div className="space-y-4">
-            <div>
-              <label htmlFor="essentialType" className="form-label">
-                Type of Essential Item
-              </label>
-              <select
-                id="essentialType"
-                className="input-field"
+          <div>
+            <label htmlFor="essentialType" className="form-label">
+              Type of Essential Item
+            </label>
+            <select
+              id="essentialType"
+              className="input-field"
                 {...register('essentialType', { 
                   required: 'Please select essential type',
                   onChange: (e) => {
@@ -270,18 +270,18 @@ const DonationForm: React.FC<DonationFormProps> = ({
                     }
                   }
                 })}
-              >
-                <option value="">Select type</option>
-                <option value="clothes">Clothes</option>
-                <option value="furniture">Furniture</option>
-                <option value="blankets">Blankets & Bedding</option>
-                <option value="shoes">Shoes</option>
-                <option value="kitchen">Kitchen Items</option>
-                <option value="toiletries">Toiletries</option>
-                <option value="other">Other</option>
-              </select>
-              {errors.essentialType && (
-                <p className="mt-1 text-sm text-red-600">{errors.essentialType.message}</p>
+            >
+              <option value="">Select type</option>
+              <option value="clothes">Clothes</option>
+              <option value="furniture">Furniture</option>
+              <option value="blankets">Blankets & Bedding</option>
+              <option value="shoes">Shoes</option>
+              <option value="kitchen">Kitchen Items</option>
+              <option value="toiletries">Toiletries</option>
+              <option value="other">Other</option>
+            </select>
+            {errors.essentialType && (
+              <p className="mt-1 text-sm text-red-600">{errors.essentialType.message}</p>
               )}
             </div>
 
@@ -530,17 +530,17 @@ const DonationForm: React.FC<DonationFormProps> = ({
 
         {/* Delivery Date */}
         {donationType !== 'money' && (
-          <div>
-            <label htmlFor="deliveryDate" className="form-label">
-              Preferred Delivery Date
-            </label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                id="deliveryDate"
-                type="date"
-                className="input-field pl-10"
-                min={new Date().toISOString().split('T')[0]}
+        <div>
+          <label htmlFor="deliveryDate" className="form-label">
+            Preferred Delivery Date
+          </label>
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              id="deliveryDate"
+              type="date"
+              className="input-field pl-10"
+              min={new Date().toISOString().split('T')[0]}
                 {...register('deliveryDate', {
                   required: 'Delivery date is required',
                   validate: (value) => {
@@ -554,7 +554,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
                     return true;
                   },
                 })}
-              />
+            />
             </div>
             {errors.deliveryDate && (
               <p className="mt-1 text-sm text-red-600">{errors.deliveryDate.message}</p>
