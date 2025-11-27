@@ -70,20 +70,20 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <div className="mx-auto h-12 w-12 bg-primary-600 rounded-full flex items-center justify-center">
+          <div className="mx-auto h-12 w-12 bg-primary-600 dark:bg-primary-500 rounded-full flex items-center justify-center">
             <Heart className="h-6 w-6 text-white" />
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
             Create your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             Or{' '}
             <Link
               to="/login"
-              className="font-medium text-primary-600 hover:text-primary-500"
+              className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300"
             >
               sign in to your existing account
             </Link>
@@ -100,26 +100,26 @@ const Register: React.FC = () => {
                 onClick={() => setUserType('donor')}
                 className={`p-4 border-2 rounded-lg text-center transition-colors ${
                   userType === 'donor'
-                    ? 'border-primary-600 bg-primary-50 text-primary-600'
-                    : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                    ? 'border-primary-600 dark:border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
+                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500'
                 }`}
               >
                 <User className="h-8 w-8 mx-auto mb-2" />
                 <div className="font-medium">Donor</div>
-                <div className="text-sm text-gray-500">I want to donate</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">I want to donate</div>
               </button>
               <button
                 type="button"
                 onClick={() => setUserType('ngo')}
                 className={`p-4 border-2 rounded-lg text-center transition-colors ${
                   userType === 'ngo'
-                    ? 'border-primary-600 bg-primary-50 text-primary-600'
-                    : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                    ? 'border-primary-600 dark:border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
+                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500'
                 }`}
               >
                 <Building className="h-8 w-8 mx-auto mb-2" />
                 <div className="font-medium">NGO</div>
-                <div className="text-sm text-gray-500">I represent an NGO</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">I represent an NGO</div>
               </button>
             </div>
           </div>
@@ -220,7 +220,7 @@ const Register: React.FC = () => {
                 })}
               />
               {errors.phone && (
-                <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.phone.message}</p>
               )}
             </div>
 
@@ -237,7 +237,7 @@ const Register: React.FC = () => {
                 {...register('address')}
               />
               {errors.address && (
-                <p className="mt-1 text-sm text-red-600">{errors.address.message}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.address.message}</p>
               )}
             </div>
 
@@ -261,10 +261,10 @@ const Register: React.FC = () => {
                     },
                   })}
                 />
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
@@ -275,7 +275,7 @@ const Register: React.FC = () => {
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password.message}</p>
               )}
             </div>
 
@@ -297,10 +297,10 @@ const Register: React.FC = () => {
                       value === password || 'Passwords do not match',
                   })}
                 />
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
                   {showConfirmPassword ? (
@@ -311,7 +311,7 @@ const Register: React.FC = () => {
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.confirmPassword.message}</p>
               )}
             </div>
           </div>
