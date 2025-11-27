@@ -161,8 +161,8 @@ const Donations: React.FC = () => {
             </h1>
             <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-2">
               {isDonor
-                ? 'Track every contribution you've made and revisit the NGOs you support.'
-                : 'View all contributions made to your organization and plan follow-ups with donors.'}
+                ? "Track every contribution you've made and revisit the NGOs you support."
+                : "View all contributions made to your organization and plan follow-ups with donors."}
             </p>
           </div>
           <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-1 flex self-start md:self-auto">
