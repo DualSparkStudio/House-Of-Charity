@@ -178,7 +178,7 @@ const NGODetail: React.FC = () => {
 
   const renderList = (items: string[], emptyMessage: string) =>
     items.length ? (
-      <ul className="space-y-2 list-disc list-inside text-gray-700">
+      <ul className="space-y-2 list-disc list-inside text-gray-700 dark:text-gray-300">
         {items.map((item, index) => (
           <li key={`${item}-${index}`} className="leading-relaxed">
             {item}
@@ -186,7 +186,7 @@ const NGODetail: React.FC = () => {
         ))}
       </ul>
     ) : (
-      <p className="text-gray-500 text-sm">{emptyMessage}</p>
+      <p className="text-gray-500 dark:text-gray-400 text-sm">{emptyMessage}</p>
     );
 
   const toNullable = (value: string) => {
@@ -263,10 +263,10 @@ const NGODetail: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading NGO details...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading NGO details...</p>
         </div>
       </div>
     );
@@ -274,10 +274,10 @@ const NGODetail: React.FC = () => {
 
   if (!ngo) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">NGO Not Found</h1>
-          <p className="text-gray-600 mb-6">The NGO you're looking for doesn't exist.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">NGO Not Found</h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">The NGO you're looking for doesn't exist.</p>
           <Link to="/ngos" className="btn-primary">
             Back to NGOs
           </Link>
@@ -533,7 +533,7 @@ const NGODetail: React.FC = () => {
 
         {/* About */}
         <div className="card mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">About</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">About</h2>
           {isEditingProfile ? (
             <textarea
               className="input-field min-h-[150px]"
@@ -542,7 +542,7 @@ const NGODetail: React.FC = () => {
               placeholder="Share your mission, story, and the impact you create."
             />
           ) : (
-            <p className="text-gray-600 whitespace-pre-line leading-relaxed">
+            <p className="text-gray-600 dark:text-gray-300 whitespace-pre-line leading-relaxed">
               {viewValues.about || ngo.description || 'Share your mission, story, and the impact you create.'}
             </p>
           )}
@@ -553,11 +553,11 @@ const NGODetail: React.FC = () => {
             <div className="card">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Gallery</h2>
-                  <p className="text-sm text-gray-500">Showcase your work</p>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Gallery</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Showcase your work</p>
                 </div>
                 {isEditingProfile && (
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
                     Add one entry per line as "image-url | caption".
                   </span>
                 )}
@@ -576,7 +576,7 @@ const NGODetail: React.FC = () => {
                     item.url && /^https?:\/\//i.test(item.url) ? (
                       <div
                         key={`${item.url}-${index}`}
-                        className="relative overflow-hidden rounded-xl aspect-video bg-gray-200"
+                        className="relative overflow-hidden rounded-xl aspect-video bg-gray-200 dark:bg-gray-700"
                       >
                         <img
                           src={item.url}
@@ -592,7 +592,7 @@ const NGODetail: React.FC = () => {
                     ) : (
                       <div
                         key={`${item.url}-${index}`}
-                        className="border border-dashed border-gray-300 rounded-lg p-4 text-sm text-gray-500"
+                        className="border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-sm text-gray-500 dark:text-gray-400"
                       >
                         {item.url || item.caption}
                       </div>
@@ -600,7 +600,7 @@ const NGODetail: React.FC = () => {
                   )}
                 </div>
               ) : (
-                <p className="text-gray-500 text-sm">
+                <p className="text-gray-500 dark:text-gray-400 text-sm">
                   {isEditingProfile
                     ? 'Add links to photos to create a gallery.'
                     : 'No gallery items yet.'}
@@ -611,8 +611,8 @@ const NGODetail: React.FC = () => {
             <div className="card">
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Work Done</h2>
-                  <p className="text-sm text-gray-500">Completed initiatives and impact</p>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Work Done</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Completed initiatives and impact</p>
                 </div>
               </div>
               {isEditingProfile ? (
@@ -630,8 +630,8 @@ const NGODetail: React.FC = () => {
             <div className="card">
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Awards & Recognition</h2>
-                  <p className="text-sm text-gray-500">Highlight your milestones</p>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Awards & Recognition</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Highlight your milestones</p>
                 </div>
               </div>
               {isEditingProfile ? (
@@ -651,8 +651,8 @@ const NGODetail: React.FC = () => {
             <div className="card">
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Current Requirements</h2>
-                  <p className="text-sm text-gray-500">Let donors know how they can help right now</p>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Current Requirements</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Let donors know how they can help right now</p>
                 </div>
               </div>
               {isEditingProfile ? (
@@ -670,8 +670,8 @@ const NGODetail: React.FC = () => {
             <div className="card">
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Future Plans</h2>
-                  <p className="text-sm text-gray-500">Share what is coming next</p>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Future Plans</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Share what is coming next</p>
                 </div>
               </div>
               {isEditingProfile ? (
@@ -689,8 +689,8 @@ const NGODetail: React.FC = () => {
             <div className="card">
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Recent Activities</h2>
-                  <p className="text-sm text-gray-500">Keep supporters updated</p>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Activities</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Keep supporters updated</p>
                 </div>
               </div>
               {isEditingProfile ? (
@@ -708,10 +708,10 @@ const NGODetail: React.FC = () => {
         </div>
 
         <div className="card mt-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Contact Information</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Contact Information</h2>
           <div className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-gray-900 mb-1">Address</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Address</p>
               {isEditingProfile ? (
                 <textarea
                   className="input-field"
@@ -720,14 +720,14 @@ const NGODetail: React.FC = () => {
                   placeholder="Street, area, and other details"
                 />
               ) : (
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-300">
                   {viewValues.address || 'No address provided.'}
                 </p>
               )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-gray-900 mb-1">City</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">City</p>
                 {isEditingProfile ? (
                   <input
                     className="input-field"
@@ -736,11 +736,11 @@ const NGODetail: React.FC = () => {
                     placeholder="City"
                   />
                 ) : (
-                  <p className="text-gray-600">{viewValues.city || '—'}</p>
+                  <p className="text-gray-600 dark:text-gray-300">{viewValues.city || '—'}</p>
                 )}
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900 mb-1">State / Region</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">State / Region</p>
                 {isEditingProfile ? (
                   <input
                     className="input-field"
@@ -749,13 +749,13 @@ const NGODetail: React.FC = () => {
                     placeholder="State or region"
                   />
                 ) : (
-                  <p className="text-gray-600">{viewValues.state || '—'}</p>
+                  <p className="text-gray-600 dark:text-gray-300">{viewValues.state || '—'}</p>
                 )}
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <p className="text-sm font-medium text-gray-900 mb-1">Country</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Country</p>
                 {isEditingProfile ? (
                   <input
                     className="input-field"
@@ -764,11 +764,11 @@ const NGODetail: React.FC = () => {
                     placeholder="Country"
                   />
                 ) : (
-                  <p className="text-gray-600">{viewValues.country || '—'}</p>
+                  <p className="text-gray-600 dark:text-gray-300">{viewValues.country || '—'}</p>
                 )}
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900 mb-1">Postal Code</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Postal Code</p>
                 {isEditingProfile ? (
                   <input
                     className="input-field"
@@ -777,11 +777,11 @@ const NGODetail: React.FC = () => {
                     placeholder="Postal code"
                   />
                 ) : (
-                  <p className="text-gray-600">{viewValues.pincode || '—'}</p>
+                  <p className="text-gray-600 dark:text-gray-300">{viewValues.pincode || '—'}</p>
                 )}
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900 mb-1">Phone</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Phone</p>
                 {isEditingProfile ? (
                   <input
                     className="input-field"
@@ -790,17 +790,17 @@ const NGODetail: React.FC = () => {
                     placeholder="Phone number"
                   />
                 ) : (
-                  <p className="text-gray-600">{viewValues.phone || '—'}</p>
+                  <p className="text-gray-600 dark:text-gray-300">{viewValues.phone || '—'}</p>
                 )}
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-gray-900 mb-1">Email</p>
-                <p className="text-gray-600">{ngo.email || '—'}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Email</p>
+                <p className="text-gray-600 dark:text-gray-300">{ngo.email || '—'}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900 mb-1">Website</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Website</p>
                 {isEditingProfile ? (
                   <input
                     className="input-field"
@@ -813,12 +813,12 @@ const NGODetail: React.FC = () => {
                     href={/^https?:\/\//i.test(viewValues.website) ? viewValues.website : `https://${viewValues.website}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary-600 hover:underline"
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
                   >
                     {viewValues.website}
                   </a>
                 ) : (
-                  <p className="text-gray-600">No website provided.</p>
+                  <p className="text-gray-600 dark:text-gray-300">No website provided.</p>
                 )}
               </div>
             </div>
@@ -826,8 +826,8 @@ const NGODetail: React.FC = () => {
         </div>
 
         <div className="card mt-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">Share this NGO</h3>
-          <p className="text-sm text-gray-600 mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Share this NGO</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
             Help us reach more donors by sharing this profile.
           </p>
           <div className="flex gap-2">

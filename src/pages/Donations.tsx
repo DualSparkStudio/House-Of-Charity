@@ -132,10 +132,10 @@ const Donations: React.FC = () => {
 
   if (loading || pageLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading donations...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading donations...</p>
         </div>
       </div>
     );
@@ -627,9 +627,9 @@ const Donations: React.FC = () => {
 
             {donations.filter((donation) => statusFilter === 'all' || donation.status === statusFilter).length === 0 && (
               <div className="p-12 text-center">
-                <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No donations found</h3>
-                <p className="text-gray-600">
+                <Package className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No donations found</h3>
+                <p className="text-gray-600 dark:text-gray-300">
                   {statusFilter === 'pending'
                     ? 'No pending donations.'
                     : 'No completed donations yet.'}
@@ -693,16 +693,16 @@ const Donations: React.FC = () => {
                 {/* Donation Details Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Type</label>
+                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Type</label>
                     <div className="mt-1 flex items-center gap-2">
                       {selectedDonation.donation_type === 'money' ? (
-                        <DollarSign className="h-5 w-5 text-green-600" />
+                        <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
                       ) : selectedDonation.donation_type === 'food' ? (
-                        <Utensils className="h-5 w-5 text-orange-600" />
+                        <Utensils className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                       ) : (
-                        <ShoppingBag className="h-5 w-5 text-blue-600" />
+                        <ShoppingBag className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                       )}
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
                         {selectedDonation.donation_type === 'money'
                           ? 'Money'
                           : selectedDonation.donation_type === 'food'
@@ -711,12 +711,12 @@ const Donations: React.FC = () => {
                       </span>
                     </div>
                     {selectedDonation.essential_type && (
-                      <p className="text-sm text-gray-600 mt-1">{selectedDonation.essential_type}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{selectedDonation.essential_type}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</label>
+                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Status</label>
                     <div className="mt-1">
                       {selectedDonation.status === 'completed' ? (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -743,26 +743,26 @@ const Donations: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       {selectedDonation.donation_type === 'money' ? 'Amount' : 'Quantity'}
                     </label>
                     <div className="mt-1">
                       {selectedDonation.donation_type === 'money' ? (
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-lg font-bold text-gray-900 dark:text-white">
                           {formatCurrency.format(Number(selectedDonation.amount || 0))}
                         </p>
                       ) : (
                         <div className="space-y-1">
-                          <p className="text-lg font-bold text-gray-900">
+                          <p className="text-lg font-bold text-gray-900 dark:text-white">
                             {selectedDonation.quantity ?? '-'} {selectedDonation.unit ?? ''}
                           </p>
                           {selectedDonation.amount && Number(selectedDonation.amount) > 0 && (
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
                               Estimated value: {formatCurrency.format(Number(selectedDonation.amount))}
                             </p>
                           )}
                           {selectedDonation.essential_type && (
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
                               Type: {selectedDonation.essential_type}
                             </p>
                           )}
@@ -772,18 +772,18 @@ const Donations: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Date</label>
-                    <p className="mt-1 text-sm text-gray-900 flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-gray-400" />
+                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Date</label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                       {new Date(selectedDonation.created_at).toLocaleString()}
                     </p>
                   </div>
 
                   {selectedDonation.delivery_date && (
                     <div className="col-span-2">
-                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Delivery Date</label>
-                      <p className="mt-1 text-sm text-gray-900 flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-primary-600" />
+                      <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Delivery Date</label>
+                      <p className="mt-1 text-sm text-gray-900 dark:text-white flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-primary-600 dark:text-primary-400" />
                         {new Date(selectedDonation.delivery_date).toLocaleDateString()}
                       </p>
                     </div>
@@ -792,11 +792,11 @@ const Donations: React.FC = () => {
 
                 {/* Description/Message */}
                 {selectedDonation.message && (
-                  <div className="pt-4 border-t border-gray-200">
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       {selectedDonation.donation_type === 'money' ? 'Message' : 'Description'}
                     </label>
-                    <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{selectedDonation.message}</p>
+                    <p className="mt-2 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{selectedDonation.message}</p>
                   </div>
                 )}
 
