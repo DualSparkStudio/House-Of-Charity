@@ -251,6 +251,21 @@ class ApiService {
     return response.json();
   }
 
+  async requestDonationAgain(id: string, newDeliveryDate?: string) {
+    const response = await fetch(`${API_BASE_URL}/donations/${id}/request-again`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ new_delivery_date: newDeliveryDate })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to request donation again');
+    }
+
+    return response.json();
+  }
+
   // Requirement operations
   async createRequirement(requirement: Omit<Requirement, 'id' | 'created_at' | 'updated_at'>) {
     const response = await fetch(`${API_BASE_URL}/requirements`, {
