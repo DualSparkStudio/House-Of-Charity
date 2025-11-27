@@ -251,6 +251,19 @@ class ApiService {
     return response.json();
   }
 
+  async getDonationById(id: string) {
+    const response = await fetch(`${API_BASE_URL}/donations/${id}`, {
+      headers: this.getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch donation');
+    }
+
+    return response.json();
+  }
+
   async requestDonationAgain(id: string, newDeliveryDate?: string) {
     const response = await fetch(`${API_BASE_URL}/donations/${id}/request-again`, {
       method: 'POST',

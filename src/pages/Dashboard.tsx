@@ -6,6 +6,12 @@ import {
   Plus,
   TrendingUp,
   Users,
+  RefreshCw,
+  X,
+  MapPin,
+  DollarSign,
+  ShoppingBag,
+  Utensils,
 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -23,7 +29,7 @@ type SidebarItem = {
 };
 
 const Dashboard: React.FC = () => {
-  const { userProfile, loading, connections } = useAuth();
+  const { userProfile, loading, connections, notifications, refreshNotifications } = useAuth();
   const navigate = useNavigate();
   const [recentDonations, setRecentDonations] = useState<Donation[]>([]);
   const [ngoDonations, setNgoDonations] = useState<Donation[]>([]);
@@ -35,6 +41,11 @@ const Dashboard: React.FC = () => {
   });
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [showRequirementModal, setShowRequirementModal] = useState(false);
+  const [donationRequestModal, setDonationRequestModal] = useState<{
+    donation: Donation | null;
+    ngoName: string;
+    notificationId?: string;
+  } | null>(null);
 
   const ngoReceivedDonations = useMemo(
     () => ngoDonations.filter((donation) => donation.status === 'completed'),
@@ -149,6 +160,47 @@ const Dashboard: React.FC = () => {
     loadDashboardData();
   }, [userProfile]);
 
+  // Check for donation request notifications
+  useEffect(() => {
+    if (!userProfile || userProfile.user_type !== 'donor' || !notifications.length) {
+      return;
+    }
+
+    // Find unread donation request notifications
+    const donationRequestNotification = notifications.find(
+      (notification) =>
+        !notification.read &&
+        notification.type === 'donation' &&
+        notification.meta?.action === 'request_again' &&
+        notification.related_id
+    );
+
+    if (donationRequestNotification && donationRequestNotification.related_id) {
+      // Fetch the donation details
+      const fetchDonationDetails = async () => {
+        try {
+          const response = await apiService.getDonationById(donationRequestNotification.related_id!);
+          if (response?.donation) {
+            // Get NGO name from notification or donation
+            const ngoName = (donationRequestNotification.meta?.ngo_name as string) || 
+                           response.donation.ngo_name || 
+                           'An NGO';
+            
+            setDonationRequestModal({
+              donation: response.donation,
+              ngoName,
+              notificationId: donationRequestNotification.id,
+            });
+          }
+        } catch (error) {
+          console.error('Failed to fetch donation details:', error);
+        }
+      };
+
+      fetchDonationDetails();
+    }
+  }, [notifications, userProfile]);
+
   if (loading || (userProfile && dashboardLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -186,6 +238,40 @@ const Dashboard: React.FC = () => {
           description: 'Manage the NGOs you support',
           icon: Users,
           onClick: () => navigate('/connections'),
+        },
+        {
+          label: 'Donation Requests',
+          description: 'View requests to repeat donations',
+          icon: RefreshCw,
+          onClick: async () => {
+            // Find donation request notifications
+            const donationRequests = notifications.filter(
+              (notification) =>
+                notification.type === 'donation' &&
+                notification.meta?.action === 'request_again' &&
+                notification.related_id
+            );
+            if (donationRequests.length > 0 && donationRequests[0].related_id) {
+              try {
+                const response = await apiService.getDonationById(donationRequests[0].related_id);
+                if (response?.donation) {
+                  const ngoName = (donationRequests[0].meta?.ngo_name as string) || 
+                                 response.donation.ngo_name || 
+                                 'An NGO';
+                  setDonationRequestModal({
+                    donation: response.donation,
+                    ngoName,
+                    notificationId: donationRequests[0].id,
+                  });
+                }
+              } catch (error) {
+                console.error('Failed to fetch donation:', error);
+                toast.error('Failed to load donation request');
+              }
+            } else {
+              toast.info('No donation requests at the moment');
+            }
+          },
         },
       ]
     : [
@@ -482,6 +568,124 @@ const Dashboard: React.FC = () => {
                   setShowRequirementModal(false);
                 }}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Donation Request Modal for Donors */}
+      {isDonor && donationRequestModal && donationRequestModal.donation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="relative max-w-2xl w-full bg-white dark:bg-gray-800 rounded-xl shadow-xl max-h-[90vh] overflow-hidden transition-colors">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Donation Request</h2>
+              <button
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                onClick={() => {
+                  if (donationRequestModal.notificationId) {
+                    apiService.markNotificationsRead([donationRequestModal.notificationId]);
+                    refreshNotifications();
+                  }
+                  setDonationRequestModal(null);
+                }}
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+              <div className="space-y-6">
+                <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg p-4">
+                  <p className="text-primary-800 dark:text-primary-200 font-medium">
+                    {donationRequestModal.ngoName} is requesting you to fulfill your donation again with a new delivery date.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Donation Type</label>
+                    <div className="mt-1 flex items-center gap-2">
+                      {donationRequestModal.donation.donation_type === 'money' ? (
+                        <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      ) : donationRequestModal.donation.donation_type === 'food' ? (
+                        <Utensils className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                      ) : (
+                        <ShoppingBag className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      )}
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        {donationRequestModal.donation.donation_type === 'money'
+                          ? 'Money'
+                          : donationRequestModal.donation.donation_type === 'food'
+                          ? 'Food'
+                          : 'Essentials'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                      {donationRequestModal.donation.donation_type === 'money' ? 'Amount' : 'Quantity'}
+                    </label>
+                    <p className="mt-1 text-lg font-bold text-gray-900 dark:text-white">
+                      {donationRequestModal.donation.donation_type === 'money'
+                        ? currencyFormatter.format(Number(donationRequestModal.donation.amount || 0))
+                        : `${donationRequestModal.donation.quantity ?? '-'} ${donationRequestModal.donation.unit ?? ''}`}
+                    </p>
+                  </div>
+
+                  {donationRequestModal.donation.delivery_date && (
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">New Delivery Date</label>
+                      <p className="mt-1 text-sm text-gray-900 dark:text-white flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-primary-600 dark:text-primary-400" />
+                        {new Date(donationRequestModal.donation.delivery_date).toLocaleDateString('en-GB', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                        })}
+                      </p>
+                    </div>
+                  )}
+
+                  {donationRequestModal.donation.message && (
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Message</label>
+                      <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                        {donationRequestModal.donation.message}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => {
+                  if (donationRequestModal.notificationId) {
+                    apiService.markNotificationsRead([donationRequestModal.notificationId]);
+                    refreshNotifications();
+                  }
+                  setDonationRequestModal(null);
+                  navigate('/donations');
+                }}
+                className="flex-1 px-4 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <Heart className="h-4 w-4" />
+                View in Donations
+              </button>
+              <button
+                onClick={() => {
+                  if (donationRequestModal.notificationId) {
+                    apiService.markNotificationsRead([donationRequestModal.notificationId]);
+                    refreshNotifications();
+                  }
+                  setDonationRequestModal(null);
+                }}
+                className="flex-1 px-4 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
