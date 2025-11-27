@@ -39,17 +39,17 @@ function AppContent() {
   }, []);
 
   return (
-    <Router>
-      <div className="App">
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
+      <Router>
+        <div className="App">
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
               background: isDarkMode ? '#1f2937' : '#363636',
-              color: '#fff',
-            },
-          }}
+                color: '#fff',
+              },
+            }}
           />
           <Routes>
             <Route path="/" element={<Layout><Home /></Layout>} />
@@ -73,7 +73,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <AppContent />
-      </AuthProvider>
+    </AuthProvider>
     </ThemeProvider>
   );
 }

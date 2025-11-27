@@ -151,10 +151,10 @@ const Dashboard: React.FC = () => {
 
   if (loading || (userProfile && dashboardLoading)) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -335,20 +335,20 @@ const Dashboard: React.FC = () => {
         <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
           <aside className="space-y-6 order-2 lg:order-1">
             <div className="card">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Access</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Access</h2>
               <div className="space-y-3">
                 {sidebarItems.map(({ label, description, icon: Icon, onClick }) => (
                   <button
                     key={label}
                     onClick={onClick}
-                    className="w-full text-left flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:border-primary-400 hover:bg-primary-50/50 transition"
+                    className="w-full text-left flex items-start gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary-400 dark:hover:border-primary-500 hover:bg-primary-50/50 dark:hover:bg-primary-900/20 transition"
                   >
-                    <div className="p-2 rounded-lg bg-primary-100 text-primary-600">
+                    <div className="p-2 rounded-lg bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">
                       <Icon className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">{label}</p>
-                      <p className="text-sm text-gray-500">{description}</p>
+                      <p className="font-semibold text-gray-900 dark:text-white">{label}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-300">{description}</p>
                     </div>
                   </button>
                 ))}
@@ -357,20 +357,20 @@ const Dashboard: React.FC = () => {
 
             {isDonor ? (
               <div className="card">
-                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-2">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wide mb-2">
                   Connections
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   You are connected with {connections.length} NGO
                   {connections.length !== 1 ? 's' : ''}. Keep nurturing those relationships.
                 </p>
               </div>
             ) : (
               <div className="card">
-                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-2">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wide mb-2">
                   Donor Engagement
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Share updates and requirements regularly to keep donors engaged.
                 </p>
               </div>
