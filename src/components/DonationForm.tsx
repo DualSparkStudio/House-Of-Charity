@@ -1,6 +1,8 @@
 import { AlertCircle, Calendar, DollarSign, ShoppingBag, Utensils } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { Controller, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../api/database';
@@ -109,6 +111,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
     reset,
     watch,
     setValue,
+    control,
   } = useForm<DonationFormData>({
     defaultValues: {
       type: initialData?.type || 'money',
@@ -127,9 +130,13 @@ const DonationForm: React.FC<DonationFormProps> = ({
   const selectedEssentialType = watch('essentialType');
   const availableSubOptions = selectedEssentialType ? essentialSubOptions[selectedEssentialType] || [] : [];
 
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
   useEffect(() => {
     if (initialData) {
       setDonationType(initialData.type || 'money');
+      const dateValue = initialData.deliveryDate ? new Date(initialData.deliveryDate) : null;
+      setSelectedDate(dateValue);
       reset({
         type: initialData.type || 'money',
         amount: initialData.amount,
@@ -142,6 +149,8 @@ const DonationForm: React.FC<DonationFormProps> = ({
         shirtQuantity: initialData.shirtQuantity,
         pantQuantity: initialData.pantQuantity,
       });
+    } else {
+      setSelectedDate(null);
     }
   }, [initialData, reset]);
 
@@ -537,25 +546,45 @@ const DonationForm: React.FC<DonationFormProps> = ({
             Preferred Delivery Date
           </label>
           <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-            <input
-              id="deliveryDate"
-              type="date"
-              className="input-field pl-10"
-              min={new Date().toISOString().split('T')[0]}
-                {...register('deliveryDate', {
-                  required: 'Delivery date is required',
-                  validate: (value) => {
-                    if (!value) return 'Delivery date is required';
-                    const selectedDate = new Date(value);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0); // Reset time to compare dates only
-                    if (selectedDate < today) {
-                      return 'Delivery date cannot be in the past';
-                    }
-                    return true;
-                  },
-                })}
+            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 z-10 pointer-events-none" />
+            <Controller
+              name="deliveryDate"
+              control={control}
+              rules={{
+                required: 'Delivery date is required',
+                validate: (value) => {
+                  if (!value) return 'Delivery date is required';
+                  const selectedDate = new Date(value);
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0); // Reset time to compare dates only
+                  if (selectedDate < today) {
+                    return 'Delivery date cannot be in the past';
+                  }
+                  return true;
+                },
+              }}
+              render={({ field }) => (
+                <DatePicker
+                  selected={selectedDate}
+                  onChange={(date: Date | null) => {
+                    setSelectedDate(date);
+                    field.onChange(date ? date.toISOString().split('T')[0] : '');
+                  }}
+                  minDate={new Date()}
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="Select delivery date"
+                  className="input-field pl-10 w-full cursor-pointer"
+                  wrapperClassName="w-full"
+                  showPopperArrow={false}
+                  popperClassName="react-datepicker-popper"
+                  calendarClassName="dark:bg-gray-800 dark:text-white"
+                  dayClassName={(date) => {
+                    return 'dark:text-gray-200 dark:hover:bg-primary-600';
+                  }}
+                  withPortal={false}
+                  shouldCloseOnSelect={true}
+                />
+              )}
             />
             </div>
             {errors.deliveryDate && (
