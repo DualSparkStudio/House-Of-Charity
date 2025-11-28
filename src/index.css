@@ -76,7 +76,7 @@
 }
 
 .react-datepicker__day--today {
-  @apply font-semibold;
+  @apply font-semibold bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 border-2 border-primary-500 dark:border-primary-400;
 }
 
 .react-datepicker__day--outside-month {

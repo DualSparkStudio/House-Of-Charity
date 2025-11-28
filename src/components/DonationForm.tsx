@@ -579,6 +579,13 @@ const DonationForm: React.FC<DonationFormProps> = ({
                   popperClassName="react-datepicker-popper"
                   calendarClassName="dark:bg-gray-800 dark:text-white"
                   dayClassName={(date) => {
+                    const today = new Date();
+                    const isToday = date.getDate() === today.getDate() &&
+                                   date.getMonth() === today.getMonth() &&
+                                   date.getFullYear() === today.getFullYear();
+                    if (isToday) {
+                      return 'react-datepicker__day--today dark:text-primary-400 font-semibold';
+                    }
                     return 'dark:text-gray-200 dark:hover:bg-primary-600';
                   }}
                   withPortal={false}
