@@ -467,30 +467,30 @@ const Donations: React.FC = () => {
                                 </button>
                                 {canModify && (
                                   <>
-                                    <button
-                                      onClick={() => handleAcceptDonation(donation.id)}
-                                      disabled={processingStatus === donation.id}
-                                      className="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                      title="Accept"
-                                    >
-                                      {processingStatus === donation.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                      ) : (
-                                        <Check className="h-4 w-4" />
-                                      )}
-                                    </button>
-                                    <button
-                                      onClick={() => handleRejectDonation(donation.id)}
-                                      disabled={processingStatus === donation.id}
-                                      className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                      title="Reject"
-                                    >
-                                      {processingStatus === donation.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                      ) : (
-                                        <X className="h-4 w-4" />
-                                      )}
-                                    </button>
+                                <button
+                                  onClick={() => handleAcceptDonation(donation.id)}
+                                  disabled={processingStatus === donation.id}
+                                  className="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                  title={processingStatus === donation.id ? "Processing..." : "Accept Donation"}
+                                >
+                                  {processingStatus === donation.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Check className="h-4 w-4" />
+                                  )}
+                                </button>
+                                <button
+                                  onClick={() => handleRejectDonation(donation.id)}
+                                  disabled={processingStatus === donation.id}
+                                  className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                  title={processingStatus === donation.id ? "Processing..." : "Reject Donation"}
+                                >
+                                  {processingStatus === donation.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <X className="h-4 w-4" />
+                                  )}
+                                </button>
                                   </>
                                 )}
                                 {canRequestAgain(donation) && (
@@ -498,7 +498,7 @@ const Donations: React.FC = () => {
                                     onClick={() => handleRequestAgain(donation.id)}
                                     disabled={processingStatus === donation.id}
                                     className="p-2 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    title="Request Again"
+                                    title={processingStatus === donation.id ? "Processing..." : "Request Again"}
                                   >
                                     {processingStatus === donation.id ? (
                                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -643,45 +643,69 @@ const Donations: React.FC = () => {
                         </div>
                       )}
 
-                      {!isDonor && (donation.status === 'pending' || donation.status === 'confirmed') && (
-                        <div className="pt-3 border-t border-gray-100 flex gap-2">
+                      {!isDonor && (
+                        <div className="pt-3 border-t border-gray-100 dark:border-gray-700 flex gap-2">
                           <button
                             onClick={() => handleViewDonation(donation)}
-                            className="flex-1 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors flex items-center justify-center gap-2"
+                            className="flex-1 px-3 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors flex items-center justify-center gap-2"
+                            title="View Details"
                           >
                             <Eye className="h-4 w-4" />
                             View
                           </button>
-                          <button
-                            onClick={() => handleAcceptDonation(donation.id)}
-                            disabled={processingStatus === donation.id}
-                            className="flex-1 px-3 py-2 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                          >
-                            {processingStatus === donation.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>
-                                <Check className="h-4 w-4" />
-                                Accept
-                              </>
-                      )}
-                          </button>
-                          <button
-                            onClick={() => handleRejectDonation(donation.id)}
-                            disabled={processingStatus === donation.id}
-                            className="flex-1 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                          >
-                            {processingStatus === donation.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>
-                                <X className="h-4 w-4" />
-                                Reject
-                              </>
-                            )}
-                          </button>
+                          {(donation.status === 'pending' || donation.status === 'confirmed') && (
+                            <>
+                              <button
+                                onClick={() => handleAcceptDonation(donation.id)}
+                                disabled={processingStatus === donation.id}
+                                className="flex-1 px-3 py-2 text-sm font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                title="Accept Donation"
+                              >
+                                {processingStatus === donation.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <>
+                                    <Check className="h-4 w-4" />
+                                    Accept
+                                  </>
+                                )}
+                              </button>
+                              <button
+                                onClick={() => handleRejectDonation(donation.id)}
+                                disabled={processingStatus === donation.id}
+                                className="flex-1 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                title="Reject Donation"
+                              >
+                                {processingStatus === donation.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <>
+                                    <X className="h-4 w-4" />
+                                    Reject
+                                  </>
+                                )}
+                              </button>
+                            </>
+                          )}
+                          {canRequestAgain(donation) && (
+                            <button
+                              onClick={() => handleRequestAgain(donation.id)}
+                              disabled={processingStatus === donation.id}
+                              className="flex-1 px-3 py-2 text-sm font-medium text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                              title="Request Again"
+                            >
+                              {processingStatus === donation.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <RefreshCw className="h-4 w-4" />
+                                  Request Again
+                                </>
+                              )}
+                            </button>
+                          )}
                         </div>
-                    )}
+                      )}
                   </div>
                 );
               })}
