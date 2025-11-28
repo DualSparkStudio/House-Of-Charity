@@ -61,6 +61,7 @@ const Dashboard: React.FC = () => {
     pantQuantity?: number;
   } | null>(null);
   const [donationFormNgo, setDonationFormNgo] = useState<{ id: string; name: string } | null>(null);
+  const [pendingRequestNotificationId, setPendingRequestNotificationId] = useState<string | null>(null);
 
   const ngoReceivedDonations = useMemo(
     () => ngoDonations.filter((donation) => donation.status === 'completed'),
@@ -756,13 +757,11 @@ const Dashboard: React.FC = () => {
                     id: donationRequestModal.donation.ngo_id || '',
                     name: donationRequestModal.ngoName,
                   });
-                  setShowDonationModal(true);
-                  
-                  // Mark notification as read and close request modal
+                  // Store notification ID to mark as read after successful donation
                   if (donationRequestModal.notificationId) {
-                    apiService.markNotificationsRead([donationRequestModal.notificationId]);
-                    refreshNotifications();
+                    setPendingRequestNotificationId(donationRequestModal.notificationId);
                   }
+                  setShowDonationModal(true);
                   setDonationRequestModal(null);
                 }}
                 className="flex-1 px-4 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
@@ -824,6 +823,12 @@ const Dashboard: React.FC = () => {
                   setShowDonationModal(false);
                   setDonationPreset(null);
                   setDonationFormNgo(null);
+                  // Mark the donation request notification as read
+                  if (pendingRequestNotificationId) {
+                    apiService.markNotificationsRead([pendingRequestNotificationId]);
+                    refreshNotifications();
+                    setPendingRequestNotificationId(null);
+                  }
                   toast.success('Donation submitted successfully!');
                 }}
                 onCancel={() => {

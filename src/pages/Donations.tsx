@@ -369,7 +369,7 @@ const Donations: React.FC = () => {
                         );
                       };
 
-                      const canModify = !isDonor && (donation.status === 'pending' || donation.status === 'confirmed');
+                      const canModify = !isDonor && donation.status === 'pending';
 
                 return (
                         <tr key={donation.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
@@ -889,7 +889,7 @@ const Donations: React.FC = () => {
                 {/* Action Buttons */}
                 {!isDonor && (
                   <div className="pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-3">
-                    {(selectedDonation.status === 'pending' || selectedDonation.status === 'confirmed') && (
+                    {selectedDonation.status === 'pending' && (
                       <>
                         <button
                           onClick={() => handleAcceptDonation(selectedDonation.id)}

@@ -13,6 +13,7 @@ const { isMockDb, useSupabase } = require('../utils/dbMode');
 const {
   notifyDonationReceived,
   notifyDonationRequestAgain,
+  notifyDonationDeliveryReminder,
 } = require('../services/notificationService');
 
 let supabaseAdapter = null;
@@ -490,6 +491,26 @@ router.put('/:id/status', authenticateToken, async (req, res) => {
         }
 
         await supabaseAdapter.updateDonation(id, { status });
+
+        // If status is 'confirmed' and donation has delivery_date, schedule reminder notification
+        if (status === 'confirmed' && donation.delivery_date) {
+          const deliveryDate = new Date(donation.delivery_date);
+          const now = new Date();
+          const daysUntilDelivery = Math.ceil((deliveryDate - now) / (1000 * 60 * 60 * 24));
+          
+          // Send reminder if delivery is 1-2 days away
+          if (daysUntilDelivery >= 1 && daysUntilDelivery <= 2) {
+            await notifyDonationDeliveryReminder({
+              donorId: donation.donor_id,
+              donationId: id,
+              ngoName: (donation.ngo && donation.ngo.name) || (donation.ngo_name) || 'NGO',
+              donationType: donation.donation_type,
+              amount: donation.amount,
+              currency: donation.currency || 'INR',
+              deliveryDate: donation.delivery_date,
+            });
+          }
+        }
 
         return res.json({ message: 'Donation status updated successfully' });
       } catch (error) {

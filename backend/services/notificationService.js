@@ -256,10 +256,76 @@ const notifyDonationRequestAgain = async ({
   }
 };
 
+const notifyDonationDeliveryReminder = async ({
+  donorId,
+  donationId,
+  ngoName,
+  donationType,
+  amount,
+  currency,
+  deliveryDate,
+}) => {
+  const safeAmount =
+    donationType === "money" && amount && Number(amount) > 0
+      ? `${currency || "INR"} ${Number(amount)}`
+      : null;
+
+  const message = safeAmount
+    ? `Reminder: Your donation of ${safeAmount} to ${ngoName} is scheduled for delivery soon.`
+    : `Reminder: Your ${donationType} donation to ${ngoName} is scheduled for delivery soon.`;
+
+  try {
+    if (isMockDbMode()) {
+      createMockNotification({
+        user_id: donorId,
+        account_type: "donor",
+        title: "Donation delivery reminder",
+        message,
+        type: "donation",
+        related_id: donationId,
+        related_type: "donation",
+        meta: {
+          donation_type: donationType,
+          amount: safeAmount ? Number(amount) : null,
+          delivery_date: deliveryDate,
+          action: "delivery_reminder",
+        },
+      });
+      return;
+    }
+
+    if (useSupabase() && supabaseAdapter) {
+      await supabaseAdapter.createNotification({
+        user_id: donorId,
+        account_type: "donor",
+        title: "Donation delivery reminder",
+        message,
+        type: "donation",
+        related_id: donationId,
+        related_type: "donation",
+        meta: {
+          donation_type: donationType,
+          amount: safeAmount ? Number(amount) : null,
+          delivery_date: deliveryDate,
+          action: "delivery_reminder",
+        },
+      });
+      return;
+    }
+
+    console.warn(
+      "[notificationService] Database mode does not support delivery reminder notifications."
+    );
+  } catch (error) {
+    console.error("[notificationService] notifyDonationDeliveryReminder failed:", error);
+  }
+};
+
 module.exports = {
   notifyDonationReceived,
   notifyRequirementPosted,
   notifyCurrentRequirementsUpdated,
   notifyDonationRequestAgain,
+  notifyDonationDeliveryReminder,
 };
 
