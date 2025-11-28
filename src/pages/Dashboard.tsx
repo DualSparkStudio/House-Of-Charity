@@ -57,6 +57,8 @@ const Dashboard: React.FC = () => {
     deliveryDate?: string;
     essentialType?: string;
     essentialSubType?: string;
+    shirtQuantity?: number;
+    pantQuantity?: number;
   } | null>(null);
   const [donationFormNgo, setDonationFormNgo] = useState<{ id: string; name: string } | null>(null);
 
@@ -709,17 +711,44 @@ const Dashboard: React.FC = () => {
                     }
                   }
                   
+                  // Parse shirt and pant quantities from message if it's a clothes donation
+                  let shirtQuantity: number | undefined;
+                  let pantQuantity: number | undefined;
+                  let cleanDescription = donationRequestModal.donation.message || '';
+                  
+                  if (donationRequestModal.donation.donation_type === 'daily_essentials' && essentialType === 'clothes') {
+                    // Parse message like "Quantity: 3 Shirts, 3 Pants, 1 item. cloths are in good condition"
+                    const quantityMatch = cleanDescription.match(/Quantity:\s*([^.]*)/i);
+                    if (quantityMatch) {
+                      const quantityPart = quantityMatch[1];
+                      // Extract shirt quantity
+                      const shirtMatch = quantityPart.match(/(\d+)\s*shirt/i);
+                      if (shirtMatch) {
+                        shirtQuantity = parseInt(shirtMatch[1], 10);
+                      }
+                      // Extract pant quantity
+                      const pantMatch = quantityPart.match(/(\d+)\s*pant/i);
+                      if (pantMatch) {
+                        pantQuantity = parseInt(pantMatch[1], 10);
+                      }
+                      // Remove quantity prefix from description
+                      cleanDescription = cleanDescription.replace(/Quantity:\s*[^.]*\.?\s*/i, '').trim();
+                    }
+                  }
+                  
                   const preset = {
                     type: donationRequestModal.donation.donation_type === 'daily_essentials' 
                       ? 'essentials' 
                       : donationRequestModal.donation.donation_type as 'money' | 'food' | 'essentials',
                     amount: donationRequestModal.donation.amount ? Number(donationRequestModal.donation.amount) : undefined,
-                    description: donationRequestModal.donation.message || undefined,
+                    description: cleanDescription || undefined,
                     quantity: donationRequestModal.donation.quantity ? Number(donationRequestModal.donation.quantity) : undefined,
                     unit: donationRequestModal.donation.unit || undefined,
                     deliveryDate: donationRequestModal.donation.delivery_date || undefined,
                     essentialType,
                     essentialSubType,
+                    shirtQuantity,
+                    pantQuantity,
                   };
                   
                   setDonationPreset(preset);

@@ -218,8 +218,8 @@ const DonationForm: React.FC<DonationFormProps> = ({
   return (
     <div className="card max-w-2xl mx-auto">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Make a Donation</h2>
-        <p className="text-gray-600">Donating to: <span className="font-medium">{ngoName}</span></p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Make a Donation</h2>
+        <p className="text-gray-600 dark:text-gray-300">Donating to: <span className="font-medium text-primary-600 dark:text-primary-400">{ngoName}</span></p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -238,13 +238,13 @@ const DonationForm: React.FC<DonationFormProps> = ({
                 onClick={() => setDonationType(type as any)}
                 className={`p-4 border-2 rounded-lg text-center transition-all ${
                   donationType === type
-                    ? 'border-primary-600 bg-primary-50 text-primary-600 shadow-md'
-                    : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:shadow-sm'
+                    ? 'border-primary-600 dark:border-primary-400 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 shadow-md'
+                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:border-primary-300 dark:hover:border-primary-500 hover:shadow-sm'
                 }`}
               >
                 <Icon className="h-8 w-8 mx-auto mb-2" />
                 <div className="text-base font-semibold mb-1">{label}</div>
-                <div className="text-xs opacity-75">{desc}</div>
+                <div className="text-xs opacity-75 dark:opacity-90">{desc}</div>
               </button>
             ))}
           </div>
@@ -283,7 +283,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
               <option value="other">Other</option>
             </select>
             {errors.essentialType && (
-              <p className="mt-1 text-sm text-red-600">{errors.essentialType.message}</p>
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.essentialType.message}</p>
               )}
             </div>
 
@@ -308,7 +308,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
                   ))}
                 </select>
                 {errors.essentialSubType && (
-                  <p className="mt-1 text-sm text-red-600">{errors.essentialSubType.message}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.essentialSubType.message}</p>
                 )}
               </div>
             )}
@@ -322,7 +322,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
               Amount (USD)
             </label>
             <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <input
                 id="amount"
                 type="number"
@@ -337,7 +337,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
               />
             </div>
             {errors.amount && (
-              <p className="mt-1 text-sm text-red-600">{errors.amount.message}</p>
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.amount.message}</p>
             )}
           </div>
         ) : donationType === 'essentials' && selectedEssentialType === 'clothes' ? (
@@ -367,7 +367,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
                   })}
                 />
                 {errors.shirtQuantity && (
-                  <p className="mt-1 text-sm text-red-600">{errors.shirtQuantity.message}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.shirtQuantity.message}</p>
                 )}
               </div>
               <div>
@@ -394,7 +394,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
                   })}
                 />
                 {errors.pantQuantity && (
-                  <p className="mt-1 text-sm text-red-600">{errors.pantQuantity.message}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.pantQuantity.message}</p>
                 )}
               </div>
             </div>
@@ -423,7 +423,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
                   })}
                 />
                 {errors.quantity && (
-                  <p className="mt-1 text-sm text-red-600">{errors.quantity.message}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.quantity.message}</p>
                 )}
               </div>
               <div>
@@ -447,7 +447,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
                   <option value="other">Other</option>
                 </select>
                 {errors.unit && (
-                  <p className="mt-1 text-sm text-red-600">{errors.unit.message}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.unit.message}</p>
                 )}
               </div>
             </div>
@@ -470,7 +470,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
                 })}
               />
               {errors.quantity && (
-                <p className="mt-1 text-sm text-red-600">{errors.quantity.message}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.quantity.message}</p>
               )}
             </div>
             <div>
@@ -495,7 +495,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
                 <option value="other">Other</option>
               </select>
               {errors.unit && (
-                <p className="mt-1 text-sm text-red-600">{errors.unit.message}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.unit.message}</p>
               )}
             </div>
           </div>
@@ -526,7 +526,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
             })}
           />
           {errors.description && (
-            <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.description.message}</p>
           )}
         </div>
 
@@ -537,7 +537,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
             Preferred Delivery Date
           </label>
           <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
             <input
               id="deliveryDate"
               type="date"
@@ -559,16 +559,16 @@ const DonationForm: React.FC<DonationFormProps> = ({
             />
             </div>
             {errors.deliveryDate && (
-              <p className="mt-1 text-sm text-red-600">{errors.deliveryDate.message}</p>
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.deliveryDate.message}</p>
             )}
           </div>
         )}
 
         {/* Information Notice */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
           <div className="flex">
-            <AlertCircle className="h-5 w-5 text-blue-400 mt-0.5 mr-3" />
-            <div className="text-sm text-blue-800">
+            <AlertCircle className="h-5 w-5 text-blue-400 dark:text-blue-500 mt-0.5 mr-3" />
+            <div className="text-sm text-blue-800 dark:text-blue-200">
               <p className="font-medium mb-1">Important Information</p>
               <ul className="space-y-1">
                 <li>• Your donation will be reviewed by the NGO</li>
